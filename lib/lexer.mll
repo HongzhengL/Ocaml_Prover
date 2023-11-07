@@ -11,19 +11,13 @@ let id = letter+
 rule read =
   parse
   | white { read lexbuf }
-  | "true" { TRUE }
-  | "false" { FALSE }
-  | "<=" { LEQ }
-  | "*" { TIMES }
-  | "+" { PLUS }
+  | "int" { TYPENAME (Ast.Int) }
+  | "string" { TYPENAME (Ast.String)} 
+  | ":" { COLON }
+  | "(*prove*)" { PROVE }
+  | "(*" { LCOMMENT }
+  | "*)" { RCOMMENT }
   | "(" { LPAREN }
   | ")" { RPAREN }
-  | "let" { LET }
-  | "=" { EQUALS }
-  | "in" { IN }
-  | "if" { IF }
-  | "then" { THEN }
-  | "else" { ELSE }
   | id { ID (Lexing.lexeme lexbuf) }
-  | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
   | eof { EOF }

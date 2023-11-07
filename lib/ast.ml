@@ -1,12 +1,5 @@
-type bop =
-  | Add
-  | Mult
-  | Leq
+type type_name = Int | String
 
 type expr =
   | Var of string
-  | Int of int
-  | Bool of bool
-  | Binop of bop * expr * expr
-  | Let of string * expr * expr
-  | If of expr * expr * expr
+  | TypeDecl of type_name * string
