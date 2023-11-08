@@ -23,8 +23,7 @@ different for you:
 
 (* the function that prints everything. *)
 (* has a side-effect (namely: it prints) so it belongs here *)
-let print_all = Stdlib.List.map (fun decl -> print_endline (string_of_declaration
-decl))
+let print_all = (fun decl -> print_endline (string_of_declaration decl))
 
 (* An improved function to parse everything from a 'channel'.
  * It has a side-effect (namely: reads from an input-channel)
@@ -101,10 +100,8 @@ It's simply given by a list of triples:
     the middle element is code for what the argument 'does'.
     Note that "Arg.String" takes a function of type: string -> unit.
     This is where we plug in the 'printfile' function we wrote above. *)
-let speclist =
-    [("--printback", Arg.String printfile, "Print the parsed file back out")]
-let _ = Arg.parse
-speclist
+let speclist = [("--printback", Arg.String printfile, "Print the parsed file back out")]
+let _ = Arg.parse speclist
 
 (* the next argument is for parsing strings not in the speclist.
 Eventually, this may be a list of files for which we should generate
@@ -115,7 +112,7 @@ usage_msg;
 (* printing an extra newline at the end of it all:
     this way, no matter what was printed so far,
     we don't mess up the terminal output too badly. *)
-print_newline ()
+print_newline ();
 (* I run this by calling:
     dune build
     ./_build/default/bin/main.exe --printback test/gettingstarted.ml

@@ -1,4 +1,4 @@
-type type_name = Int | String
+type type_name = Int 
 
 type bop = Equal
 

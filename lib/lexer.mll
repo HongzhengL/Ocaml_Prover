@@ -13,7 +13,6 @@ rule read = parse
   | newline { Lexing.new_line lexbuf; read lexbuf}
   | white { read lexbuf }
   | "int" { TYPENAME (Ast.Int) }
-  | "string" { TYPENAME (Ast.String)} 
   | ":" { COLON }
   | "=" { EQUAL }
   | "(*prove*)" { PROVE }
