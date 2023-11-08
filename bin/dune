@@ -1,4 +1,4 @@
 (executable
- (public_name prover)
+ (public_name oprovl)
  (name main)
- (libraries prover))
+ (libraries oprovl))

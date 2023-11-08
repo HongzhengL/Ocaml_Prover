@@ -1,0 +1,52 @@
+
+** Conflict (shift/reduce) in state 7.
+** Token involved: EQUALS
+** This state is reached from prog after reading:
+
+expr EQUALS expr
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+prog 
+expr EOF 
+(?)
+
+** In state 7, looking ahead at EQUALS, shifting is permitted
+** because of the following sub-derivation:
+
+expr EQUALS expr 
+            expr . EQUALS expr 
+
+** In state 7, looking ahead at EQUALS, reducing production
+** expr -> expr EQUALS expr
+** is permitted because of the following sub-derivation:
+
+expr EQUALS expr // lookahead token appears
+expr EQUALS expr . 
+
+** Conflict (shift/reduce) in state 5.
+** Token involved: EQUALS
+** This state is reached from prog after reading:
+
+ID expr
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+prog 
+expr EOF 
+(?)
+
+** In state 5, looking ahead at EQUALS, shifting is permitted
+** because of the following sub-derivation:
+
+ID expr 
+   expr . EQUALS expr 
+
+** In state 5, looking ahead at EQUALS, reducing production
+** expr -> ID expr
+** is permitted because of the following sub-derivation:
+
+expr EQUALS expr // lookahead token appears
+ID expr . 
