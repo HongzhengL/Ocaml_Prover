@@ -23,8 +23,8 @@ different for you:
 
 (* the function that prints everything. *)
 (* has a side-effect (namely: it prints) so it belongs here *)
-let print_all = (fun decl -> print_endline (string_of_declaration decl))
-
+let print_all = Stdlib.List.map (fun decl -> print_endline (string_of_declaration
+decl))
 (* An improved function to parse everything from a 'channel'.
  * It has a side-effect (namely: reads from an input-channel)
  * The filename is passed for error-reporting purposes only
@@ -112,7 +112,7 @@ usage_msg;
 (* printing an extra newline at the end of it all:
     this way, no matter what was printed so far,
     we don't mess up the terminal output too badly. *)
-print_newline ();
+(* print_newline (); *)
 (* I run this by calling:
     dune build
     ./_build/default/bin/main.exe --printback test/gettingstarted.ml

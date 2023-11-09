@@ -12,7 +12,6 @@ let newline = '\r' | '\n' | "\n\r" | "\r\n"
 rule read = parse
   | newline { Lexing.new_line lexbuf; read lexbuf}
   | white { read lexbuf }
-  | "int" { TYPENAME (Ast.Int) }
   | ":" { COLON }
   | "=" { EQUAL }
   | "(*prove*)" { PROVE }
@@ -20,6 +19,13 @@ rule read = parse
   | "(" { LPAREN }
   | ")" { RPAREN }
   | "let" { LET }
+  | "rec" { REC }
+  | "match" { MATCH }
+  | "with" { WITH }
+  | "type" { TYPE }
+  | "|" { BAR }
+  | "of" { OF }
+  | "->" { ARROW }
   | id { ID (Lexing.lexeme lexbuf) }
   | eof { EOF }
 and comment = parse

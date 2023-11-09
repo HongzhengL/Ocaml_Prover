@@ -13,49 +13,57 @@
     tokens
 *)
 %token <string> ID
-%token <Ast.type_name> TYPENAME
 %token EOF
 %token COLON
+%token BAR
+%token ARROW
 %token EQUAL
 %token LPAREN
 %token RPAREN
 %token PROVE
 %token LET
+%token REC
+%token MATCH
+%token WITH
+%token TYPE
+%token OF
 
 (*
     operator associativity and precidence. Lowest precidence is
     first line, then highest precidence is last line.
 *)
-%nonassoc EQUAL
+%left EQUAL
 (* start with a rule named "prog" *)
-%start <Ast.declaration> prog
+%start <Ast.declaration list> prog
 %%
 
 (* rules section. Syntax represents BNF *)
 prog:
-    | d = declaration; EOF { d }
+    | d1 = declaration; cont = prog { d1::cont }
+    | d = declaration; EOF { d::[] }
     ;
 
 declaration:
-    | LET; PROVE; e = function_l; EQUAL; def = expr { Proof(e, def) }
-
+    | LET; PROVE; e = function_l; EQUAL; def = expr 
+      { Proof(e, def) }
+ 
 function_l:
-  | f = function_l; name = ID { FunctionHeader (f, Identifyer (name)) }
-  | f = function_l; 
-    LPAREN; id = ID; COLON; t = TYPENAME; RPAREN 
-      { FunctionHeader (f, TypeAnotation(t, Identifyer(id))) }
-  | name = ID {Identifyer (name) }
+  | f = function_l; tap = type_annot {FunctionLeft (f, tap)}
+  | name = ID {Id (LemmaID name)}
 
 function_r:
-  | name = ID; f = function_r { FunctionEval (Identifyer (name), f) } 
-  | name = ID; { Identifyer (name) }
-  | LPAREN; f = function_r; RPAREN; { f }
+  | func = ID; fr = function_r {FunctionRight (FuncID func, fr)}
+  | name = ID {Id (ParamID name)}
+  | LPAREN; fr = function_r; RPAREN; { fr }
 
+type_annot:
+  | param = ID; COLON; t = ID {TypeAnotation(ParamID param, TypeID t)}
+  | LPAREN; ta = type_annot; RPAREN { ta }
 
 expr:
-  | x = ID { Identifyer (x) }
+  | param = ID; {Id (ParamID param)}
   | e1 = expr; EQUAL; e2 = expr {Bop(Equal, e1, e2)}
-  | e = function_r { e }
+  | func = ID; fr = function_r; { FunctionRight( FuncID func, fr) }
   | LPAREN; e = expr; RPAREN; { e }
   ;
 

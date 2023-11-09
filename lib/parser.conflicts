@@ -1,52 +1,30 @@
 
-** Conflict (shift/reduce) in state 7.
-** Token involved: EQUALS
+** Conflict (shift/reduce) in state 4.
+** Token involved: LPAREN
 ** This state is reached from prog after reading:
 
-expr EQUALS expr
+ID ID
 
 ** The derivations that appear below have the following common factor:
 ** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
 
 prog 
-expr EOF 
 (?)
 
-** In state 7, looking ahead at EQUALS, shifting is permitted
-** because of the following sub-derivation:
-
-expr EQUALS expr 
-            expr . EQUALS expr 
-
-** In state 7, looking ahead at EQUALS, reducing production
-** expr -> expr EQUALS expr
+** In state 4, looking ahead at LPAREN, reducing production
+** function_r -> ID
 ** is permitted because of the following sub-derivation:
 
-expr EQUALS expr // lookahead token appears
-expr EQUALS expr . 
+declaration prog // lookahead token appears because prog can begin with LPAREN
+expr // lookahead token is inherited
+ID function_r // lookahead token is inherited
+   ID . 
 
-** Conflict (shift/reduce) in state 5.
-** Token involved: EQUALS
-** This state is reached from prog after reading:
-
-ID expr
-
-** The derivations that appear below have the following common factor:
-** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
-
-prog 
-expr EOF 
-(?)
-
-** In state 5, looking ahead at EQUALS, shifting is permitted
+** In state 4, looking ahead at LPAREN, shifting is permitted
 ** because of the following sub-derivation:
 
-ID expr 
-   expr . EQUALS expr 
-
-** In state 5, looking ahead at EQUALS, reducing production
-** expr -> ID expr
-** is permitted because of the following sub-derivation:
-
-expr EQUALS expr // lookahead token appears
-ID expr . 
+declaration prog 
+expr 
+ID function_r 
+   ID function_r 
+      . LPAREN function_r RPAREN 
