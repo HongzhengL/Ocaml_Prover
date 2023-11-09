@@ -1,5 +1,5 @@
 (library
- (name prover))
+ (name oprovl))
 
 (menhir 
   (modules parser))

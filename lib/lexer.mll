@@ -5,25 +5,29 @@
 let white = [' ' '\t']+
 let digit = ['0'-'9']
 let int = '-'? digit+
-let letter = ['a'-'z' 'A'-'A']
+let letter = ['a'-'z' 'A'-'A' '_']
 let id = letter+
+let newline = '\r' | '\n' | "\n\r" | "\r\n"
 
-rule read =
-  parse
+rule read = parse
+  | newline { Lexing.new_line lexbuf; read lexbuf}
   | white { read lexbuf }
-  | "true" { TRUE }
-  | "false" { FALSE }
-  | "<=" { LEQ }
-  | "*" { TIMES }
-  | "+" { PLUS }
+  | ":" { COLON }
+  | "=" { EQUAL }
+  | "(*prove*)" { PROVE }
+  | "(*" { comment lexbuf}
   | "(" { LPAREN }
   | ")" { RPAREN }
   | "let" { LET }
-  | "=" { EQUALS }
-  | "in" { IN }
-  | "if" { IF }
-  | "then" { THEN }
-  | "else" { ELSE }
+  | "rec" { REC }
+  | "match" { MATCH }
+  | "with" { WITH }
+  | "type" { TYPE }
+  | "|" { BAR }
+  | "of" { OF }
+  | "->" { ARROW }
   | id { ID (Lexing.lexeme lexbuf) }
-  | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
   | eof { EOF }
+and comment = parse
+  | "*)" { read lexbuf }
+  | _ { comment lexbuf }

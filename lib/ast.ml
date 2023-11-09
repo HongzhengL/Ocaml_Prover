@@ -1,12 +1,19 @@
-type bop =
-  | Add
-  | Mult
-  | Leq
+type bop = Equal
 
-type expr =
-  | Var of string
-  | Int of int
-  | Bool of bool
-  | Binop of bop * expr * expr
-  | Let of string * expr * expr
-  | If of expr * expr * expr
+type id = 
+  | FuncID of string
+  | TypeID of string
+  | ParamID of string
+  | LemmaID of string
+
+type expr=
+  | Id of id
+  | TypeAnotation of id * id
+  | FunctionLeft of expr * expr
+  | FunctionRight of id * expr
+  | Bop of bop * expr * expr
+
+type declaration = 
+  | Proof of expr * expr
+  | Expr of expr
+

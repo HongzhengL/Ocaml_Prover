@@ -12,57 +12,60 @@
     this is the declaration section. Contains definitions for out
     tokens
 *)
-%token <int> INT
 %token <string> ID
-%token TRUE
-%token FALSE
-%token LEQ
-%token TIMES
-%token PLUS
+%token EOF
+%token COLON
+%token BAR
+%token ARROW
+%token EQUAL
 %token LPAREN
 %token RPAREN
+%token PROVE
 %token LET
-%token EQUALS
-%token IN
-%token IF
-%token THEN
-%token ELSE
-%token EOF
+%token REC
+%token MATCH
+%token WITH
+%token TYPE
+%token OF
 
 (*
     operator associativity and precidence. Lowest precidence is
     first line, then highest precidence is last line.
 *)
-%nonassoc IN
-%nonassoc ELSE
-%left LEQ
-%left PLUS
-%left TIMES
-
+%left EQUAL
 (* start with a rule named "prog" *)
-%start <Ast.expr> prog
+%start <Ast.declaration list> prog
 %%
 
 (* rules section. Syntax represents BNF *)
 prog:
-    | e = expr; EOF { e }
+    | d1 = declaration; cont = prog { d1::cont }
+    | d = declaration; EOF { d::[] }
     ;
 
+declaration:
+    | LET; PROVE; e = function_l; EQUAL; def = expr 
+      { Proof(e, def) }
+ 
+function_l:
+  | f = function_l; tap = type_annot {FunctionLeft (f, tap)}
+  | name = ID {Id (LemmaID name)}
+
+function_r:
+  | func = ID; fr = function_r {FunctionRight (FuncID func, fr)}
+  | name = ID {Id (ParamID name)}
+  | LPAREN; fr = function_r; RPAREN; { fr }
+
+type_annot:
+  | param = ID; COLON; t = ID {TypeAnotation(ParamID param, TypeID t)}
+  | LPAREN; ta = type_annot; RPAREN { ta }
+
 expr:
-  | i = INT { Int i }
-  | x = ID { Var x }
-  | TRUE { Bool true }
-  | FALSE { Bool false }
-  | e1 = expr; LEQ; e2 = expr { Binop (Leq, e1, e2) }
-  | e1 = expr; TIMES; e2 = expr { Binop (Mult, e1, e2) }
-  | e1 = expr; PLUS; e2 = expr { Binop (Add, e1, e2) }
-  | LET; x = ID; EQUALS; e1 = expr; IN; e2 = expr { Let (x, e1, e2) }
-  | IF; e1 = expr; THEN; e2 = expr; ELSE; e3 = expr { If (e1, e2, e3) }
-  | LPAREN; e=expr; RPAREN {e}
+  | param = ID; {Id (ParamID param)}
+  | e1 = expr; EQUAL; e2 = expr {Bop(Equal, e1, e2)}
+  | func = ID; fr = function_r; { FunctionRight( FuncID func, fr) }
+  | LPAREN; e = expr; RPAREN; { e }
   ;
-
-
-
 
 
 
