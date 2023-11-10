@@ -5,9 +5,9 @@ selection:
 - the only statement is a let-prove statement
 - the only hint is 'axiom' (no 'induction')
 *)
-let (*prove*) cf_idempotent (h : int)
-= (cf (cf h) = cf h)
-(*hint: axiom *)
+
+(h :: filter tl) else (filter tl)
+*hint: axiom *)
 let (*prove*) inv_involution (h : int)
 = (inv (inv h) = h)
 (*hint: axiom *)

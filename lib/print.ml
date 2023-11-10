@@ -20,3 +20,4 @@ let string_of_declaration decl = match decl with
   | Ast.Proof (e1, e2) -> "let (*prove*) "
    ^ (string_of_expr e1) ^ " = " ^ (string_of_expr e2)   
   | _ -> ""
+
