@@ -1,30 +1,28 @@
 
-** Conflict (shift/reduce) in state 4.
-** Token involved: LPAREN
+** Conflict (shift/reduce) in state 26.
+** Token involved: COLON
 ** This state is reached from prog after reading:
 
-ID ID
+LET REC ID ID
 
 ** The derivations that appear below have the following common factor:
 ** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
 
 prog 
-(?)
+declaration prog 
+LET REC function_header EQUAL expr 
+        (?)
 
-** In state 4, looking ahead at LPAREN, reducing production
-** function_r -> ID
+** In state 26, looking ahead at COLON, reducing production
+** parameter_list -> ID
 ** is permitted because of the following sub-derivation:
 
-declaration prog // lookahead token appears because prog can begin with LPAREN
-expr // lookahead token is inherited
-ID function_r // lookahead token is inherited
+ID parameter_list COLON ID // lookahead token appears
    ID . 
 
-** In state 4, looking ahead at LPAREN, shifting is permitted
+** In state 26, looking ahead at COLON, shifting is permitted
 ** because of the following sub-derivation:
 
-declaration prog 
-expr 
-ID function_r 
-   ID function_r 
-      . LPAREN function_r RPAREN 
+ID parameter_list 
+   type_annot parameter_list 
+   ID . COLON ID 

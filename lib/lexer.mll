@@ -3,9 +3,7 @@
 }
 
 let white = [' ' '\t']+
-let digit = ['0'-'9']
-let int = '-'? digit+
-let letter = ['a'-'z' 'A'-'A' '_']
+let letter = ['a'-'z' 'A'-'Z' '_' '0'-'9']
 let id = letter+
 let newline = '\r' | '\n' | "\n\r" | "\r\n"
 
@@ -13,7 +11,9 @@ rule read = parse
   | newline { Lexing.new_line lexbuf; read lexbuf}
   | white { read lexbuf }
   | ":" { COLON }
+  | "*" { STAR }
   | "=" { EQUAL }
+  | "," { COMMA }
   | "(*prove*)" { PROVE }
   | "(*" { comment lexbuf}
   | "(" { LPAREN }
