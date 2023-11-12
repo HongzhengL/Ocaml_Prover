@@ -127,7 +127,7 @@ pattern_list:
 constructor:
   | constructor_name = CONSTRUCTOR;
     {Id(ConstructorID constructor_name)}
-  | constructor_name = CONSTRUCTOR; et = expr_tuple;
+  | constructor_name = CONSTRUCTOR; LPAREN; et = expr_tuple; RPAREN;
    {Constructor(ConstructorID constructor_name, ExprTuple(et))}
 
 constructor_ta:
@@ -137,12 +137,10 @@ constructor_ta:
    {Constructor(ConstructorID constructor_name, ExprTuple(tat))}
 
 expr_tuple:
-  | LPAREN; e = expr; et = expr_tuple
+  | e = expr; COMMA; et = expr_tuple
     {e::et}
-  | COMMA; e = expr; et = expr_tuple
-    {e::et}
-  | RPAREN;
-    {[]}
+  | e = expr; 
+    {e::[]}
 
 type_annot_tuple:
   | LPAREN; ta = type_annot; tat_cont = type_annot_tuple

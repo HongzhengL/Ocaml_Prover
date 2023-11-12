@@ -22,7 +22,7 @@ let rec string_of_expr expr = match expr with
   | Ast.FunctionLeft (e1, e2) ->
     (string_of_expr e1) ^ " " ^ (string_of_expr e2)
   | Ast.FunctionRight (e1, e2) ->
-    (string_of_expr e1) ^ " (" ^ (string_of_expr e2) ^ ")"
+    (string_of_expr e1) ^ ( match e2 with Ast.Id id -> " " ^ string_of_id id | _ -> " (" ^ (string_of_expr e2) ^ ")")
   | Ast.Bop (bop, e1, e2) ->
     "(" ^ (string_of_expr e1)  ^
     (match bop with Equal -> " = ") ^ 
