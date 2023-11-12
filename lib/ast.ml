@@ -5,17 +5,28 @@ type id =
   | TypeID of string
   | ParamID of string
   | LemmaID of string
-  | VariantID of string
+  | ConstructorID of string
 
 type expr=
   | Id of id
-  | Variant of id * expr
+  | Constructor of id * expr
+  | TypeConstructor of id * expr
   | TypeAnotation of id * id
   | TypeTuple of id list
-  | FunctionHeader of expr * expr list
+  | ExprTuple of expr list
+  | FunctionHeader of id * id * expr list
   | FunctionLeft of expr * expr
   | FunctionRight of expr * expr
   | Bop of bop * expr * expr
+  (* 
+     thing we are matching * 
+     pattern list 
+  *)
+  | Match of expr * expr list
+  (*
+     (constructor (expr1)) -> (expr2)
+  *)
+  | Pattern of expr * expr
 
 type declaration = 
   | Lemma of expr * expr

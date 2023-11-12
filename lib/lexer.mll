@@ -3,8 +3,12 @@
 }
 
 let white = [' ' '\t']+
-let letter = ['a'-'z' 'A'-'Z' '_' '0'-'9']
-let id = letter+
+let lowerletter = ['a'-'z']
+let upperletter = ['A'-'Z']
+let digit = ['0'-'9']
+let idbody = lowerletter | upperletter | digit | '_'
+let id = lowerletter idbody*
+let constructor = upperletter idbody*
 let newline = '\r' | '\n' | "\n\r" | "\r\n"
 
 rule read = parse
@@ -15,7 +19,7 @@ rule read = parse
   | "=" { EQUAL }
   | "," { COMMA }
   | "(*prove*)" { PROVE }
-  | "(*" { comment lexbuf}
+  | "(*" { comment 0 lexbuf}
   | "(" { LPAREN }
   | ")" { RPAREN }
   | "let" { LET }
@@ -27,7 +31,9 @@ rule read = parse
   | "of" { OF }
   | "->" { ARROW }
   | id { ID (Lexing.lexeme lexbuf) }
+  | constructor { CONSTRUCTOR (Lexing.lexeme lexbuf)}
   | eof { EOF }
-and comment = parse
-  | "*)" { read lexbuf }
-  | _ { comment lexbuf }
+and comment level = parse
+  | "(*" { comment (level + 1) lexbuf}
+  | "*)" { if (level = 0) then read lexbuf else comment (level - 1) lexbuf }
+  | _ { comment level lexbuf }

@@ -4,164 +4,971 @@ State 0:
 ## LR(1) items:
 prog' -> . prog [ # ]
 ## Transitions:
--- On LPAREN shift to state 1
--- On LET shift to state 13
--- On ID shift to state 2
--- On prog shift to state 26
--- On expr shift to state 27
--- On declaration shift to state 28
+-- On TYPE shift to state 1
+-- On LET shift to state 17
+-- On prog shift to state 90
+-- On declaration shift to state 91
 ## Reductions:
 
 State 1:
 ## Known stack suffix:
-## LPAREN
+## TYPE
 ## LR(1) items:
-expr -> LPAREN . expr RPAREN [ RPAREN LPAREN LET ID EQUAL EOF ]
+declaration -> TYPE . ID EQUAL variant_list [ TYPE LET EOF ]
 ## Transitions:
--- On LPAREN shift to state 1
 -- On ID shift to state 2
--- On expr shift to state 9
 ## Reductions:
 
 State 2:
 ## Known stack suffix:
-## ID
+## TYPE ID
 ## LR(1) items:
-expr -> ID . function_r [ RPAREN LPAREN LET ID EQUAL EOF ]
+declaration -> TYPE ID . EQUAL variant_list [ TYPE LET EOF ]
 ## Transitions:
--- On LPAREN shift to state 3
--- On ID shift to state 4
--- On function_r shift to state 8
+-- On EQUAL shift to state 3
 ## Reductions:
 
 State 3:
 ## Known stack suffix:
-## LPAREN
+## TYPE ID EQUAL
 ## LR(1) items:
-function_r -> LPAREN . function_r RPAREN [ RPAREN LPAREN LET ID EQUAL EOF ]
+declaration -> TYPE ID EQUAL . variant_list [ TYPE LET EOF ]
 ## Transitions:
--- On LPAREN shift to state 3
--- On ID shift to state 4
--- On function_r shift to state 6
+-- On BAR shift to state 4
+-- On variant_list shift to state 16
 ## Reductions:
 
 State 4:
 ## Known stack suffix:
-## ID
+## BAR
 ## LR(1) items:
-function_r -> ID . function_r [ RPAREN LPAREN LET ID EQUAL EOF ]
-function_r -> ID . [ RPAREN LPAREN LET ID EQUAL EOF ]
+variant_list -> BAR . CONSTRUCTOR variant_list [ TYPE LET EOF ]
+variant_list -> BAR . CONSTRUCTOR OF tuple_type variant_list [ TYPE LET EOF ]
+variant_list -> BAR . CONSTRUCTOR [ TYPE LET EOF ]
+variant_list -> BAR . CONSTRUCTOR OF tuple_type [ TYPE LET EOF ]
 ## Transitions:
--- On LPAREN shift to state 3
--- On ID shift to state 4
--- On function_r shift to state 5
+-- On CONSTRUCTOR shift to state 5
 ## Reductions:
--- On RPAREN LPAREN LET EQUAL EOF
---   reduce production function_r -> ID
-** Conflict on LPAREN
 
 State 5:
 ## Known stack suffix:
-## ID function_r
+## BAR CONSTRUCTOR
 ## LR(1) items:
-function_r -> ID function_r . [ RPAREN LPAREN LET ID EQUAL EOF ]
+variant_list -> BAR CONSTRUCTOR . variant_list [ TYPE LET EOF ]
+variant_list -> BAR CONSTRUCTOR . OF tuple_type variant_list [ TYPE LET EOF ]
+variant_list -> BAR CONSTRUCTOR . [ TYPE LET EOF ]
+variant_list -> BAR CONSTRUCTOR . OF tuple_type [ TYPE LET EOF ]
 ## Transitions:
+-- On OF shift to state 6
+-- On BAR shift to state 4
+-- On variant_list shift to state 15
 ## Reductions:
--- On RPAREN LPAREN LET ID EQUAL EOF
---   reduce production function_r -> ID function_r
+-- On TYPE LET EOF
+--   reduce production variant_list -> BAR CONSTRUCTOR
 
 State 6:
 ## Known stack suffix:
-## LPAREN function_r
+## BAR CONSTRUCTOR OF
 ## LR(1) items:
-function_r -> LPAREN function_r . RPAREN [ RPAREN LPAREN LET ID EQUAL EOF ]
+variant_list -> BAR CONSTRUCTOR OF . tuple_type variant_list [ TYPE LET EOF ]
+variant_list -> BAR CONSTRUCTOR OF . tuple_type [ TYPE LET EOF ]
 ## Transitions:
--- On RPAREN shift to state 7
+-- On LPAREN shift to state 7
+-- On ID shift to state 8
+-- On tuple_type shift to state 13
 ## Reductions:
 
 State 7:
 ## Known stack suffix:
-## LPAREN function_r RPAREN
+## LPAREN
 ## LR(1) items:
-function_r -> LPAREN function_r RPAREN . [ RPAREN LPAREN LET ID EQUAL EOF ]
+tuple_type -> LPAREN . tuple_type RPAREN [ TYPE RPAREN LET EOF BAR ]
 ## Transitions:
+-- On LPAREN shift to state 7
+-- On ID shift to state 8
+-- On tuple_type shift to state 11
 ## Reductions:
--- On RPAREN LPAREN LET ID EQUAL EOF
---   reduce production function_r -> LPAREN function_r RPAREN
 
 State 8:
 ## Known stack suffix:
-## ID function_r
+## ID
 ## LR(1) items:
-expr -> ID function_r . [ RPAREN LPAREN LET ID EQUAL EOF ]
+tuple_type -> ID . STAR tuple_type [ TYPE RPAREN LET EOF BAR ]
+tuple_type -> ID . [ TYPE RPAREN LET EOF BAR ]
 ## Transitions:
+-- On STAR shift to state 9
 ## Reductions:
--- On RPAREN LPAREN LET ID EQUAL EOF
---   reduce production expr -> ID function_r
+-- On TYPE RPAREN LET EOF BAR
+--   reduce production tuple_type -> ID
 
 State 9:
 ## Known stack suffix:
-## LPAREN expr
+## ID STAR
 ## LR(1) items:
-expr -> expr . EQUAL expr [ RPAREN EQUAL ]
-expr -> LPAREN expr . RPAREN [ RPAREN LPAREN LET ID EQUAL EOF ]
+tuple_type -> ID STAR . tuple_type [ TYPE RPAREN LET EOF BAR ]
 ## Transitions:
--- On RPAREN shift to state 10
--- On EQUAL shift to state 11
+-- On LPAREN shift to state 7
+-- On ID shift to state 8
+-- On tuple_type shift to state 10
 ## Reductions:
 
 State 10:
 ## Known stack suffix:
-## LPAREN expr RPAREN
+## ID STAR tuple_type
 ## LR(1) items:
-expr -> LPAREN expr RPAREN . [ RPAREN LPAREN LET ID EQUAL EOF ]
+tuple_type -> ID STAR tuple_type . [ TYPE RPAREN LET EOF BAR ]
 ## Transitions:
 ## Reductions:
--- On RPAREN LPAREN LET ID EQUAL EOF
---   reduce production expr -> LPAREN expr RPAREN
+-- On TYPE RPAREN LET EOF BAR
+--   reduce production tuple_type -> ID STAR tuple_type
 
 State 11:
 ## Known stack suffix:
-## expr EQUAL
+## LPAREN tuple_type
 ## LR(1) items:
-expr -> expr EQUAL . expr [ RPAREN LPAREN LET ID EQUAL EOF ]
+tuple_type -> LPAREN tuple_type . RPAREN [ TYPE RPAREN LET EOF BAR ]
 ## Transitions:
--- On LPAREN shift to state 1
--- On ID shift to state 2
--- On expr shift to state 12
+-- On RPAREN shift to state 12
 ## Reductions:
 
 State 12:
 ## Known stack suffix:
-## expr EQUAL expr
+## LPAREN tuple_type RPAREN
 ## LR(1) items:
-expr -> expr . EQUAL expr [ RPAREN LPAREN LET ID EQUAL EOF ]
-expr -> expr EQUAL expr . [ RPAREN LPAREN LET ID EQUAL EOF ]
+tuple_type -> LPAREN tuple_type RPAREN . [ TYPE RPAREN LET EOF BAR ]
 ## Transitions:
 ## Reductions:
--- On RPAREN LPAREN LET ID EQUAL EOF
---   reduce production expr -> expr EQUAL expr
+-- On TYPE RPAREN LET EOF BAR
+--   reduce production tuple_type -> LPAREN tuple_type RPAREN
 
 State 13:
 ## Known stack suffix:
-## LET
+## BAR CONSTRUCTOR OF tuple_type
 ## LR(1) items:
-declaration -> LET . PROVE function_l EQUAL expr [ LPAREN LET ID EOF ]
+variant_list -> BAR CONSTRUCTOR OF tuple_type . variant_list [ TYPE LET EOF ]
+variant_list -> BAR CONSTRUCTOR OF tuple_type . [ TYPE LET EOF ]
 ## Transitions:
--- On PROVE shift to state 14
+-- On BAR shift to state 4
+-- On variant_list shift to state 14
 ## Reductions:
+-- On TYPE LET EOF
+--   reduce production variant_list -> BAR CONSTRUCTOR OF tuple_type
 
 State 14:
 ## Known stack suffix:
-## LET PROVE
+## BAR CONSTRUCTOR OF tuple_type variant_list
 ## LR(1) items:
-declaration -> LET PROVE . function_l EQUAL expr [ LPAREN LET ID EOF ]
+variant_list -> BAR CONSTRUCTOR OF tuple_type variant_list . [ TYPE LET EOF ]
 ## Transitions:
--- On ID shift to state 15
--- On function_l shift to state 16
 ## Reductions:
+-- On TYPE LET EOF
+--   reduce production variant_list -> BAR CONSTRUCTOR OF tuple_type variant_list
 
 State 15:
+## Known stack suffix:
+## BAR CONSTRUCTOR variant_list
+## LR(1) items:
+variant_list -> BAR CONSTRUCTOR variant_list . [ TYPE LET EOF ]
+## Transitions:
+## Reductions:
+-- On TYPE LET EOF
+--   reduce production variant_list -> BAR CONSTRUCTOR variant_list
+
+State 16:
+## Known stack suffix:
+## TYPE ID EQUAL variant_list
+## LR(1) items:
+declaration -> TYPE ID EQUAL variant_list . [ TYPE LET EOF ]
+## Transitions:
+## Reductions:
+-- On TYPE LET EOF
+--   reduce production declaration -> TYPE ID EQUAL variant_list
+
+State 17:
+## Known stack suffix:
+## LET
+## LR(1) items:
+declaration -> LET . PROVE function_l EQUAL expr [ TYPE LET EOF ]
+declaration -> LET . REC function_header EQUAL expr [ TYPE LET EOF ]
+## Transitions:
+-- On REC shift to state 18
+-- On PROVE shift to state 84
+## Reductions:
+
+State 18:
+## Known stack suffix:
+## LET REC
+## LR(1) items:
+declaration -> LET REC . function_header EQUAL expr [ TYPE LET EOF ]
+## Transitions:
+-- On ID shift to state 19
+-- On function_header shift to state 35
+## Reductions:
+
+State 19:
+## Known stack suffix:
+## ID
+## LR(1) items:
+function_header -> ID . parameter_list COLON ID [ EQUAL ]
+## Transitions:
+-- On LPAREN shift to state 20
+-- On ID shift to state 29
+-- On parameter_list shift to state 32
+## Reductions:
+
+State 20:
+## Known stack suffix:
+## LPAREN
+## LR(1) items:
+parameter_list -> LPAREN . type_annot RPAREN parameter_list [ COLON ]
+parameter_list -> LPAREN . type_annot RPAREN [ COLON ]
+## Transitions:
+-- On LPAREN shift to state 21
+-- On ID shift to state 22
+-- On type_annot shift to state 27
+## Reductions:
+
+State 21:
+## Known stack suffix:
+## LPAREN
+## LR(1) items:
+type_annot -> LPAREN . type_annot RPAREN [ RPAREN LPAREN ID EQUAL COMMA ]
+## Transitions:
+-- On LPAREN shift to state 21
+-- On ID shift to state 22
+-- On type_annot shift to state 25
+## Reductions:
+
+State 22:
+## Known stack suffix:
+## ID
+## LR(1) items:
+type_annot -> ID . COLON ID [ RPAREN LPAREN ID EQUAL COMMA ]
+## Transitions:
+-- On COLON shift to state 23
+## Reductions:
+
+State 23:
+## Known stack suffix:
+## ID COLON
+## LR(1) items:
+type_annot -> ID COLON . ID [ RPAREN LPAREN ID EQUAL COMMA ]
+## Transitions:
+-- On ID shift to state 24
+## Reductions:
+
+State 24:
+## Known stack suffix:
+## ID COLON ID
+## LR(1) items:
+type_annot -> ID COLON ID . [ RPAREN LPAREN ID EQUAL COMMA ]
+## Transitions:
+## Reductions:
+-- On RPAREN LPAREN ID EQUAL COMMA
+--   reduce production type_annot -> ID COLON ID
+
+State 25:
+## Known stack suffix:
+## LPAREN type_annot
+## LR(1) items:
+type_annot -> LPAREN type_annot . RPAREN [ RPAREN LPAREN ID EQUAL COMMA ]
+## Transitions:
+-- On RPAREN shift to state 26
+## Reductions:
+
+State 26:
+## Known stack suffix:
+## LPAREN type_annot RPAREN
+## LR(1) items:
+type_annot -> LPAREN type_annot RPAREN . [ RPAREN LPAREN ID EQUAL COMMA ]
+## Transitions:
+## Reductions:
+-- On RPAREN LPAREN ID EQUAL COMMA
+--   reduce production type_annot -> LPAREN type_annot RPAREN
+
+State 27:
+## Known stack suffix:
+## LPAREN type_annot
+## LR(1) items:
+parameter_list -> LPAREN type_annot . RPAREN parameter_list [ COLON ]
+parameter_list -> LPAREN type_annot . RPAREN [ COLON ]
+## Transitions:
+-- On RPAREN shift to state 28
+## Reductions:
+
+State 28:
+## Known stack suffix:
+## LPAREN type_annot RPAREN
+## LR(1) items:
+parameter_list -> LPAREN type_annot RPAREN . parameter_list [ COLON ]
+parameter_list -> LPAREN type_annot RPAREN . [ COLON ]
+## Transitions:
+-- On LPAREN shift to state 20
+-- On ID shift to state 29
+-- On parameter_list shift to state 31
+## Reductions:
+-- On COLON
+--   reduce production parameter_list -> LPAREN type_annot RPAREN
+
+State 29:
+## Known stack suffix:
+## ID
+## LR(1) items:
+parameter_list -> ID . parameter_list [ COLON ]
+parameter_list -> ID . [ COLON ]
+## Transitions:
+-- On LPAREN shift to state 20
+-- On ID shift to state 29
+-- On parameter_list shift to state 30
+## Reductions:
+-- On COLON
+--   reduce production parameter_list -> ID
+
+State 30:
+## Known stack suffix:
+## ID parameter_list
+## LR(1) items:
+parameter_list -> ID parameter_list . [ COLON ]
+## Transitions:
+## Reductions:
+-- On COLON
+--   reduce production parameter_list -> ID parameter_list
+
+State 31:
+## Known stack suffix:
+## LPAREN type_annot RPAREN parameter_list
+## LR(1) items:
+parameter_list -> LPAREN type_annot RPAREN parameter_list . [ COLON ]
+## Transitions:
+## Reductions:
+-- On COLON
+--   reduce production parameter_list -> LPAREN type_annot RPAREN parameter_list
+
+State 32:
+## Known stack suffix:
+## ID parameter_list
+## LR(1) items:
+function_header -> ID parameter_list . COLON ID [ EQUAL ]
+## Transitions:
+-- On COLON shift to state 33
+## Reductions:
+
+State 33:
+## Known stack suffix:
+## ID parameter_list COLON
+## LR(1) items:
+function_header -> ID parameter_list COLON . ID [ EQUAL ]
+## Transitions:
+-- On ID shift to state 34
+## Reductions:
+
+State 34:
+## Known stack suffix:
+## ID parameter_list COLON ID
+## LR(1) items:
+function_header -> ID parameter_list COLON ID . [ EQUAL ]
+## Transitions:
+## Reductions:
+-- On EQUAL
+--   reduce production function_header -> ID parameter_list COLON ID
+
+State 35:
+## Known stack suffix:
+## LET REC function_header
+## LR(1) items:
+declaration -> LET REC function_header . EQUAL expr [ TYPE LET EOF ]
+## Transitions:
+-- On EQUAL shift to state 36
+## Reductions:
+
+State 36:
+## Known stack suffix:
+## LET REC function_header EQUAL
+## LR(1) items:
+declaration -> LET REC function_header EQUAL . expr [ TYPE LET EOF ]
+## Transitions:
+-- On MATCH shift to state 37
+-- On LPAREN shift to state 38
+-- On ID shift to state 39
+-- On CONSTRUCTOR shift to state 41
+-- On function_r shift to state 44
+-- On expr shift to state 83
+-- On constructor shift to state 50
+## Reductions:
+
+State 37:
+## Known stack suffix:
+## MATCH
+## LR(1) items:
+expr -> MATCH . expr WITH BAR pattern_list [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+-- On MATCH shift to state 37
+-- On LPAREN shift to state 38
+-- On ID shift to state 39
+-- On CONSTRUCTOR shift to state 41
+-- On function_r shift to state 44
+-- On expr shift to state 65
+-- On constructor shift to state 50
+## Reductions:
+
+State 38:
+## Known stack suffix:
+## LPAREN
+## LR(1) items:
+expr -> LPAREN . expr RPAREN [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+-- On MATCH shift to state 37
+-- On LPAREN shift to state 38
+-- On ID shift to state 39
+-- On CONSTRUCTOR shift to state 41
+-- On function_r shift to state 44
+-- On expr shift to state 63
+-- On constructor shift to state 50
+## Reductions:
+
+State 39:
+## Known stack suffix:
+## ID
+## LR(1) items:
+expr -> ID . [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+function_r -> ID . LPAREN expr RPAREN [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+function_r -> ID . ID [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+function_r -> ID . CONSTRUCTOR [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+## Transitions:
+-- On LPAREN shift to state 40
+-- On ID shift to state 61
+-- On CONSTRUCTOR shift to state 62
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR
+--   reduce production expr -> ID
+** Conflict on LPAREN
+
+State 40:
+## Known stack suffix:
+## ID LPAREN
+## LR(1) items:
+function_r -> ID LPAREN . expr RPAREN [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+## Transitions:
+-- On MATCH shift to state 37
+-- On LPAREN shift to state 38
+-- On ID shift to state 39
+-- On CONSTRUCTOR shift to state 41
+-- On function_r shift to state 44
+-- On expr shift to state 59
+-- On constructor shift to state 50
+## Reductions:
+
+State 41:
+## Known stack suffix:
+## CONSTRUCTOR
+## LR(1) items:
+constructor -> CONSTRUCTOR . [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+constructor -> CONSTRUCTOR . expr_tuple [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+-- On RPAREN shift to state 42
+-- On LPAREN shift to state 43
+-- On COMMA shift to state 54
+-- On expr_tuple shift to state 58
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR
+--   reduce production constructor -> CONSTRUCTOR
+** Conflict on RPAREN LPAREN COMMA
+
+State 42:
+## Known stack suffix:
+## RPAREN
+## LR(1) items:
+expr_tuple -> RPAREN . [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR
+--   reduce production expr_tuple -> RPAREN
+
+State 43:
+## Known stack suffix:
+## LPAREN
+## LR(1) items:
+expr_tuple -> LPAREN . expr expr_tuple [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+-- On MATCH shift to state 37
+-- On LPAREN shift to state 38
+-- On ID shift to state 39
+-- On CONSTRUCTOR shift to state 41
+-- On function_r shift to state 44
+-- On expr shift to state 53
+-- On constructor shift to state 50
+## Reductions:
+
+State 44:
+## Known stack suffix:
+## function_r
+## LR(1) items:
+expr -> function_r . [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+function_r -> function_r . LPAREN expr RPAREN [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+function_r -> function_r . ID [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+function_r -> function_r . CONSTRUCTOR [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+## Transitions:
+-- On LPAREN shift to state 45
+-- On ID shift to state 51
+-- On CONSTRUCTOR shift to state 52
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR
+--   reduce production expr -> function_r
+** Conflict on LPAREN
+
+State 45:
+## Known stack suffix:
+## function_r LPAREN
+## LR(1) items:
+function_r -> function_r LPAREN . expr RPAREN [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+## Transitions:
+-- On MATCH shift to state 37
+-- On LPAREN shift to state 38
+-- On ID shift to state 39
+-- On CONSTRUCTOR shift to state 41
+-- On function_r shift to state 44
+-- On expr shift to state 46
+-- On constructor shift to state 50
+## Reductions:
+
+State 46:
+## Known stack suffix:
+## function_r LPAREN expr
+## LR(1) items:
+expr -> expr . EQUAL expr [ RPAREN EQUAL ]
+function_r -> function_r LPAREN expr . RPAREN [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+## Transitions:
+-- On RPAREN shift to state 47
+-- On EQUAL shift to state 48
+## Reductions:
+
+State 47:
+## Known stack suffix:
+## function_r LPAREN expr RPAREN
+## LR(1) items:
+function_r -> function_r LPAREN expr RPAREN . [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+## Transitions:
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR
+--   reduce production function_r -> function_r LPAREN expr RPAREN
+
+State 48:
+## Known stack suffix:
+## expr EQUAL
+## LR(1) items:
+expr -> expr EQUAL . expr [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+-- On MATCH shift to state 37
+-- On LPAREN shift to state 38
+-- On ID shift to state 39
+-- On CONSTRUCTOR shift to state 41
+-- On function_r shift to state 44
+-- On expr shift to state 49
+-- On constructor shift to state 50
+## Reductions:
+
+State 49:
+## Known stack suffix:
+## expr EQUAL expr
+## LR(1) items:
+expr -> expr . EQUAL expr [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+expr -> expr EQUAL expr . [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR
+--   reduce production expr -> expr EQUAL expr
+
+State 50:
+## Known stack suffix:
+## constructor
+## LR(1) items:
+expr -> constructor . [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR
+--   reduce production expr -> constructor
+
+State 51:
+## Known stack suffix:
+## function_r ID
+## LR(1) items:
+function_r -> function_r ID . [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+## Transitions:
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR
+--   reduce production function_r -> function_r ID
+
+State 52:
+## Known stack suffix:
+## function_r CONSTRUCTOR
+## LR(1) items:
+function_r -> function_r CONSTRUCTOR . [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+## Transitions:
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR
+--   reduce production function_r -> function_r CONSTRUCTOR
+
+State 53:
+## Known stack suffix:
+## LPAREN expr
+## LR(1) items:
+expr -> expr . EQUAL expr [ RPAREN LPAREN EQUAL COMMA ]
+expr_tuple -> LPAREN expr . expr_tuple [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+-- On RPAREN shift to state 42
+-- On LPAREN shift to state 43
+-- On EQUAL shift to state 48
+-- On COMMA shift to state 54
+-- On expr_tuple shift to state 57
+## Reductions:
+
+State 54:
+## Known stack suffix:
+## COMMA
+## LR(1) items:
+expr_tuple -> COMMA . expr expr_tuple [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+-- On MATCH shift to state 37
+-- On LPAREN shift to state 38
+-- On ID shift to state 39
+-- On CONSTRUCTOR shift to state 41
+-- On function_r shift to state 44
+-- On expr shift to state 55
+-- On constructor shift to state 50
+## Reductions:
+
+State 55:
+## Known stack suffix:
+## COMMA expr
+## LR(1) items:
+expr -> expr . EQUAL expr [ RPAREN LPAREN EQUAL COMMA ]
+expr_tuple -> COMMA expr . expr_tuple [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+-- On RPAREN shift to state 42
+-- On LPAREN shift to state 43
+-- On EQUAL shift to state 48
+-- On COMMA shift to state 54
+-- On expr_tuple shift to state 56
+## Reductions:
+
+State 56:
+## Known stack suffix:
+## COMMA expr expr_tuple
+## LR(1) items:
+expr_tuple -> COMMA expr expr_tuple . [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR
+--   reduce production expr_tuple -> COMMA expr expr_tuple
+
+State 57:
+## Known stack suffix:
+## LPAREN expr expr_tuple
+## LR(1) items:
+expr_tuple -> LPAREN expr expr_tuple . [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR
+--   reduce production expr_tuple -> LPAREN expr expr_tuple
+
+State 58:
+## Known stack suffix:
+## CONSTRUCTOR expr_tuple
+## LR(1) items:
+constructor -> CONSTRUCTOR expr_tuple . [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR
+--   reduce production constructor -> CONSTRUCTOR expr_tuple
+
+State 59:
+## Known stack suffix:
+## ID LPAREN expr
+## LR(1) items:
+expr -> expr . EQUAL expr [ RPAREN EQUAL ]
+function_r -> ID LPAREN expr . RPAREN [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+## Transitions:
+-- On RPAREN shift to state 60
+-- On EQUAL shift to state 48
+## Reductions:
+
+State 60:
+## Known stack suffix:
+## ID LPAREN expr RPAREN
+## LR(1) items:
+function_r -> ID LPAREN expr RPAREN . [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+## Transitions:
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR
+--   reduce production function_r -> ID LPAREN expr RPAREN
+
+State 61:
+## Known stack suffix:
+## ID ID
+## LR(1) items:
+function_r -> ID ID . [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+## Transitions:
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR
+--   reduce production function_r -> ID ID
+
+State 62:
+## Known stack suffix:
+## ID CONSTRUCTOR
+## LR(1) items:
+function_r -> ID CONSTRUCTOR . [ WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR ]
+## Transitions:
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET ID EQUAL EOF CONSTRUCTOR COMMA BAR
+--   reduce production function_r -> ID CONSTRUCTOR
+
+State 63:
+## Known stack suffix:
+## LPAREN expr
+## LR(1) items:
+expr -> expr . EQUAL expr [ RPAREN EQUAL ]
+expr -> LPAREN expr . RPAREN [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+-- On RPAREN shift to state 64
+-- On EQUAL shift to state 48
+## Reductions:
+
+State 64:
+## Known stack suffix:
+## LPAREN expr RPAREN
+## LR(1) items:
+expr -> LPAREN expr RPAREN . [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR
+--   reduce production expr -> LPAREN expr RPAREN
+
+State 65:
+## Known stack suffix:
+## MATCH expr
+## LR(1) items:
+expr -> MATCH expr . WITH BAR pattern_list [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+expr -> expr . EQUAL expr [ WITH EQUAL ]
+## Transitions:
+-- On WITH shift to state 66
+-- On EQUAL shift to state 48
+## Reductions:
+
+State 66:
+## Known stack suffix:
+## MATCH expr WITH
+## LR(1) items:
+expr -> MATCH expr WITH . BAR pattern_list [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+-- On BAR shift to state 67
+## Reductions:
+
+State 67:
+## Known stack suffix:
+## MATCH expr WITH BAR
+## LR(1) items:
+expr -> MATCH expr WITH BAR . pattern_list [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+-- On CONSTRUCTOR shift to state 68
+-- On pattern_list shift to state 77
+-- On constructor_ta shift to state 78
+## Reductions:
+
+State 68:
+## Known stack suffix:
+## CONSTRUCTOR
+## LR(1) items:
+constructor_ta -> CONSTRUCTOR . [ ARROW ]
+constructor_ta -> CONSTRUCTOR . type_annot_tuple [ ARROW ]
+## Transitions:
+-- On RPAREN shift to state 69
+-- On LPAREN shift to state 70
+-- On COMMA shift to state 72
+-- On type_annot_tuple shift to state 76
+## Reductions:
+-- On ARROW
+--   reduce production constructor_ta -> CONSTRUCTOR
+
+State 69:
+## Known stack suffix:
+## RPAREN
+## LR(1) items:
+type_annot_tuple -> RPAREN . [ ARROW ]
+## Transitions:
+## Reductions:
+-- On ARROW
+--   reduce production type_annot_tuple -> RPAREN
+
+State 70:
+## Known stack suffix:
+## LPAREN
+## LR(1) items:
+type_annot_tuple -> LPAREN . type_annot type_annot_tuple [ ARROW ]
+## Transitions:
+-- On LPAREN shift to state 21
+-- On ID shift to state 22
+-- On type_annot shift to state 71
+## Reductions:
+
+State 71:
+## Known stack suffix:
+## LPAREN type_annot
+## LR(1) items:
+type_annot_tuple -> LPAREN type_annot . type_annot_tuple [ ARROW ]
+## Transitions:
+-- On RPAREN shift to state 69
+-- On LPAREN shift to state 70
+-- On COMMA shift to state 72
+-- On type_annot_tuple shift to state 75
+## Reductions:
+
+State 72:
+## Known stack suffix:
+## COMMA
+## LR(1) items:
+type_annot_tuple -> COMMA . type_annot type_annot_tuple [ ARROW ]
+## Transitions:
+-- On LPAREN shift to state 21
+-- On ID shift to state 22
+-- On type_annot shift to state 73
+## Reductions:
+
+State 73:
+## Known stack suffix:
+## COMMA type_annot
+## LR(1) items:
+type_annot_tuple -> COMMA type_annot . type_annot_tuple [ ARROW ]
+## Transitions:
+-- On RPAREN shift to state 69
+-- On LPAREN shift to state 70
+-- On COMMA shift to state 72
+-- On type_annot_tuple shift to state 74
+## Reductions:
+
+State 74:
+## Known stack suffix:
+## COMMA type_annot type_annot_tuple
+## LR(1) items:
+type_annot_tuple -> COMMA type_annot type_annot_tuple . [ ARROW ]
+## Transitions:
+## Reductions:
+-- On ARROW
+--   reduce production type_annot_tuple -> COMMA type_annot type_annot_tuple
+
+State 75:
+## Known stack suffix:
+## LPAREN type_annot type_annot_tuple
+## LR(1) items:
+type_annot_tuple -> LPAREN type_annot type_annot_tuple . [ ARROW ]
+## Transitions:
+## Reductions:
+-- On ARROW
+--   reduce production type_annot_tuple -> LPAREN type_annot type_annot_tuple
+
+State 76:
+## Known stack suffix:
+## CONSTRUCTOR type_annot_tuple
+## LR(1) items:
+constructor_ta -> CONSTRUCTOR type_annot_tuple . [ ARROW ]
+## Transitions:
+## Reductions:
+-- On ARROW
+--   reduce production constructor_ta -> CONSTRUCTOR type_annot_tuple
+
+State 77:
+## Known stack suffix:
+## MATCH expr WITH BAR pattern_list
+## LR(1) items:
+expr -> MATCH expr WITH BAR pattern_list . [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR
+--   reduce production expr -> MATCH expr WITH BAR pattern_list
+
+State 78:
+## Known stack suffix:
+## constructor_ta
+## LR(1) items:
+pattern_list -> constructor_ta . ARROW expr BAR pattern_list [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+pattern_list -> constructor_ta . ARROW expr [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+-- On ARROW shift to state 79
+## Reductions:
+
+State 79:
+## Known stack suffix:
+## constructor_ta ARROW
+## LR(1) items:
+pattern_list -> constructor_ta ARROW . expr BAR pattern_list [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+pattern_list -> constructor_ta ARROW . expr [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+-- On MATCH shift to state 37
+-- On LPAREN shift to state 38
+-- On ID shift to state 39
+-- On CONSTRUCTOR shift to state 41
+-- On function_r shift to state 44
+-- On expr shift to state 80
+-- On constructor shift to state 50
+## Reductions:
+
+State 80:
+## Known stack suffix:
+## constructor_ta ARROW expr
+## LR(1) items:
+expr -> expr . EQUAL expr [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+pattern_list -> constructor_ta ARROW expr . BAR pattern_list [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+pattern_list -> constructor_ta ARROW expr . [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+-- On EQUAL shift to state 48
+-- On BAR shift to state 81
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET EOF COMMA
+--   reduce production pattern_list -> constructor_ta ARROW expr
+
+State 81:
+## Known stack suffix:
+## constructor_ta ARROW expr BAR
+## LR(1) items:
+pattern_list -> constructor_ta ARROW expr BAR . pattern_list [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+-- On CONSTRUCTOR shift to state 68
+-- On pattern_list shift to state 82
+-- On constructor_ta shift to state 78
+## Reductions:
+
+State 82:
+## Known stack suffix:
+## constructor_ta ARROW expr BAR pattern_list
+## LR(1) items:
+pattern_list -> constructor_ta ARROW expr BAR pattern_list . [ WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR ]
+## Transitions:
+## Reductions:
+-- On WITH TYPE RPAREN LPAREN LET EQUAL EOF COMMA BAR
+--   reduce production pattern_list -> constructor_ta ARROW expr BAR pattern_list
+
+State 83:
+## Known stack suffix:
+## LET REC function_header EQUAL expr
+## LR(1) items:
+declaration -> LET REC function_header EQUAL expr . [ TYPE LET EOF ]
+expr -> expr . EQUAL expr [ TYPE LET EQUAL EOF ]
+## Transitions:
+-- On EQUAL shift to state 48
+## Reductions:
+-- On TYPE LET EOF
+--   reduce production declaration -> LET REC function_header EQUAL expr
+
+State 84:
+## Known stack suffix:
+## LET PROVE
+## LR(1) items:
+declaration -> LET PROVE . function_l EQUAL expr [ TYPE LET EOF ]
+## Transitions:
+-- On ID shift to state 85
+-- On function_l shift to state 86
+## Reductions:
+
+State 85:
 ## Known stack suffix:
 ## ID
 ## LR(1) items:
@@ -171,101 +978,47 @@ function_l -> ID . [ LPAREN ID EQUAL ]
 -- On LPAREN ID EQUAL
 --   reduce production function_l -> ID
 
-State 16:
+State 86:
 ## Known stack suffix:
 ## LET PROVE function_l
 ## LR(1) items:
-declaration -> LET PROVE function_l . EQUAL expr [ LPAREN LET ID EOF ]
+declaration -> LET PROVE function_l . EQUAL expr [ TYPE LET EOF ]
 function_l -> function_l . type_annot [ LPAREN ID EQUAL ]
 ## Transitions:
--- On LPAREN shift to state 17
--- On ID shift to state 18
--- On EQUAL shift to state 23
--- On type_annot shift to state 25
+-- On LPAREN shift to state 21
+-- On ID shift to state 22
+-- On EQUAL shift to state 87
+-- On type_annot shift to state 89
 ## Reductions:
 
-State 17:
-## Known stack suffix:
-## LPAREN
-## LR(1) items:
-type_annot -> LPAREN . type_annot RPAREN [ RPAREN LPAREN ID EQUAL ]
-## Transitions:
--- On LPAREN shift to state 17
--- On ID shift to state 18
--- On type_annot shift to state 21
-## Reductions:
-
-State 18:
-## Known stack suffix:
-## ID
-## LR(1) items:
-type_annot -> ID . COLON ID [ RPAREN LPAREN ID EQUAL ]
-## Transitions:
--- On COLON shift to state 19
-## Reductions:
-
-State 19:
-## Known stack suffix:
-## ID COLON
-## LR(1) items:
-type_annot -> ID COLON . ID [ RPAREN LPAREN ID EQUAL ]
-## Transitions:
--- On ID shift to state 20
-## Reductions:
-
-State 20:
-## Known stack suffix:
-## ID COLON ID
-## LR(1) items:
-type_annot -> ID COLON ID . [ RPAREN LPAREN ID EQUAL ]
-## Transitions:
-## Reductions:
--- On RPAREN LPAREN ID EQUAL
---   reduce production type_annot -> ID COLON ID
-
-State 21:
-## Known stack suffix:
-## LPAREN type_annot
-## LR(1) items:
-type_annot -> LPAREN type_annot . RPAREN [ RPAREN LPAREN ID EQUAL ]
-## Transitions:
--- On RPAREN shift to state 22
-## Reductions:
-
-State 22:
-## Known stack suffix:
-## LPAREN type_annot RPAREN
-## LR(1) items:
-type_annot -> LPAREN type_annot RPAREN . [ RPAREN LPAREN ID EQUAL ]
-## Transitions:
-## Reductions:
--- On RPAREN LPAREN ID EQUAL
---   reduce production type_annot -> LPAREN type_annot RPAREN
-
-State 23:
+State 87:
 ## Known stack suffix:
 ## LET PROVE function_l EQUAL
 ## LR(1) items:
-declaration -> LET PROVE function_l EQUAL . expr [ LPAREN LET ID EOF ]
+declaration -> LET PROVE function_l EQUAL . expr [ TYPE LET EOF ]
 ## Transitions:
--- On LPAREN shift to state 1
--- On ID shift to state 2
--- On expr shift to state 24
+-- On MATCH shift to state 37
+-- On LPAREN shift to state 38
+-- On ID shift to state 39
+-- On CONSTRUCTOR shift to state 41
+-- On function_r shift to state 44
+-- On expr shift to state 88
+-- On constructor shift to state 50
 ## Reductions:
 
-State 24:
+State 88:
 ## Known stack suffix:
 ## LET PROVE function_l EQUAL expr
 ## LR(1) items:
-declaration -> LET PROVE function_l EQUAL expr . [ LPAREN LET ID EOF ]
-expr -> expr . EQUAL expr [ LPAREN LET ID EQUAL EOF ]
+declaration -> LET PROVE function_l EQUAL expr . [ TYPE LET EOF ]
+expr -> expr . EQUAL expr [ TYPE LET EQUAL EOF ]
 ## Transitions:
--- On EQUAL shift to state 11
+-- On EQUAL shift to state 48
 ## Reductions:
--- On LPAREN LET ID EOF
+-- On TYPE LET EOF
 --   reduce production declaration -> LET PROVE function_l EQUAL expr
 
-State 25:
+State 89:
 ## Known stack suffix:
 ## function_l type_annot
 ## LR(1) items:
@@ -275,7 +1028,7 @@ function_l -> function_l type_annot . [ LPAREN ID EQUAL ]
 -- On LPAREN ID EQUAL
 --   reduce production function_l -> function_l type_annot
 
-State 26:
+State 90:
 ## Known stack suffix:
 ## prog
 ## LR(1) items:
@@ -285,35 +1038,21 @@ prog' -> prog . [ # ]
 -- On #
 --   accept prog
 
-State 27:
-## Known stack suffix:
-## expr
-## LR(1) items:
-declaration -> expr . [ LPAREN LET ID EOF ]
-expr -> expr . EQUAL expr [ LPAREN LET ID EQUAL EOF ]
-## Transitions:
--- On EQUAL shift to state 11
-## Reductions:
--- On LPAREN LET ID EOF
---   reduce production declaration -> expr
-
-State 28:
+State 91:
 ## Known stack suffix:
 ## declaration
 ## LR(1) items:
 prog -> declaration . prog [ # ]
 prog -> declaration . EOF [ # ]
 ## Transitions:
--- On LPAREN shift to state 1
--- On LET shift to state 13
--- On ID shift to state 2
--- On EOF shift to state 29
--- On prog shift to state 30
--- On expr shift to state 27
--- On declaration shift to state 28
+-- On TYPE shift to state 1
+-- On LET shift to state 17
+-- On EOF shift to state 92
+-- On prog shift to state 93
+-- On declaration shift to state 91
 ## Reductions:
 
-State 29:
+State 92:
 ## Known stack suffix:
 ## declaration EOF
 ## LR(1) items:
@@ -323,7 +1062,7 @@ prog -> declaration EOF . [ # ]
 -- On #
 --   reduce production prog -> declaration EOF
 
-State 30:
+State 93:
 ## Known stack suffix:
 ## declaration prog
 ## LR(1) items:

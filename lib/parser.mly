@@ -13,6 +13,7 @@
     tokens
 *)
 %token <string> ID
+%token <string> CONSTRUCTOR
 %token EOF
 %token COLON
 %token BAR
@@ -34,6 +35,8 @@
     operator associativity and precidence. Lowest precidence is
     first line, then highest precidence is last line.
 *)
+%nonassoc ARROW
+%nonassoc BAR
 %left EQUAL
 (* start with a rule named "prog" *)
 %start <Ast.declaration list> prog
@@ -54,10 +57,8 @@ declaration:
       {Type(TypeID type_name, vl)}
  
 function_header:
-    | func_name = ID; params = parameter_list 
-      {FunctionHeader(Id(FuncID(func_name)), params)}
     | func_name = ID; params = parameter_list; COLON; type_name = ID
-      {FunctionHeader(TypeAnotation(FuncID(func_name), TypeID(type_name)), params)}
+      {FunctionHeader(FuncID func_name, TypeID type_name, params)}
 
 (* Restriction on parameter type annotations: must be in parentheses*)
 parameter_list:
@@ -88,16 +89,20 @@ function_r:
     {FunctionRight(Id(FuncID func_name), Id(ParamID param_name))}
   | func = function_r; param_name = ID
     {FunctionRight(func, Id(ParamID param_name))}
+  | func_name = ID; param_name = CONSTRUCTOR;
+    {FunctionRight(Id(FuncID func_name), Id(ConstructorID param_name))}
+  | func = function_r; param_name = CONSTRUCTOR
+    {FunctionRight(func, Id(ConstructorID param_name))}
 
 variant_list:
-  | BAR; variant_name = ID; next_v = variant_list 
-    {Id(VariantID variant_name)::next_v}
-  | BAR; variant_name = ID; OF; tt = tuple_type; next_v = variant_list
-    {Variant(VariantID(variant_name), TypeTuple(tt))::next_v}
-  | BAR; variant_name = ID; 
-    {Id(VariantID variant_name)::[] }
-  | BAR; variant_name = ID; OF; tt = tuple_type;
-    {Variant(VariantID(variant_name), TypeTuple(tt))::[]}
+  | BAR; variant_name = CONSTRUCTOR; next_v = variant_list 
+    {Id(ConstructorID variant_name)::next_v}
+  | BAR; variant_name = CONSTRUCTOR; OF; tt = tuple_type; next_v = variant_list
+    {TypeConstructor(ConstructorID(variant_name), TypeTuple(tt))::next_v}
+  | BAR; variant_name = CONSTRUCTOR; 
+    {Id(ConstructorID variant_name)::[] }
+  | BAR; variant_name = CONSTRUCTOR; OF; tt = tuple_type;
+    {TypeConstructor(ConstructorID(variant_name), TypeTuple(tt))::[]}
 
 tuple_type:
   | type_name = ID; STAR; type_cont = tuple_type 
@@ -113,13 +118,51 @@ type_annot:
   | LPAREN; ta = type_annot; RPAREN 
     {ta}
 
+pattern_list:
+  | c = constructor_ta; ARROW; e = expr; BAR; pl_cont = pattern_list; 
+    {Pattern(c, e)::pl_cont}
+  | c = constructor_ta; ARROW; e = expr; 
+    {Pattern(c, e)::[]}
+
+constructor:
+  | constructor_name = CONSTRUCTOR;
+    {Id(ConstructorID constructor_name)}
+  | constructor_name = CONSTRUCTOR; et = expr_tuple;
+   {Constructor(ConstructorID constructor_name, ExprTuple(et))}
+
+constructor_ta:
+  | constructor_name = CONSTRUCTOR;
+    {Id(ConstructorID constructor_name)}
+  | constructor_name = CONSTRUCTOR; tat = type_annot_tuple;
+   {Constructor(ConstructorID constructor_name, ExprTuple(tat))}
+
+expr_tuple:
+  | LPAREN; e = expr; et = expr_tuple
+    {e::et}
+  | COMMA; e = expr; et = expr_tuple
+    {e::et}
+  | RPAREN;
+    {[]}
+
+type_annot_tuple:
+  | LPAREN; ta = type_annot; tat_cont = type_annot_tuple
+    {ta::tat_cont}
+  | COMMA; ta = type_annot; tat_cont = type_annot_tuple
+    {ta::tat_cont}
+  | RPAREN;
+    {[]}
+
 expr:
+  | MATCH; e = expr; WITH; BAR; pl = pattern_list;
+    {Match(e, pl)}
   | param = ID; 
     {Id (ParamID param)}
   | e1 = expr; EQUAL; e2 = expr 
     {Bop(Equal, e1, e2)}
   | fr = function_r; 
     {fr}
+  | con = constructor
+    {con}
   | LPAREN; e = expr; RPAREN; 
     {e}
   ;
