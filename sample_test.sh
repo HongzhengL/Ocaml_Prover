@@ -7,6 +7,6 @@ printf "lex and parse sample.ml to file 1.txt:\n"
 printf "\nlex and parse 1.txt to file 2.txt:\n"
 ./_build/default/bin/main.exe --printback 1.txt
 ./_build/default/bin/main.exe --printback 1.txt > 2.txt
-printf "\n diff of 1.txt and 2.txt\n"
+printf "\ndiff of 1.txt and 2.txt:\n"
 diff 1.txt 2.txt
 rm 1.txt 2.txt

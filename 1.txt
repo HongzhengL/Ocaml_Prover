@@ -1,2 +1,0 @@
-File "./testfull.txt", line 14, character 10:
- Syntax error
