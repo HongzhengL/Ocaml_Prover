@@ -49,14 +49,14 @@ prog:
     ;
 
 declaration:
-    | LET; PROVE; name = ID; variable_list = function_l; EQUAL; def = expr 
-      {Lemma(name, variable_list, def) }
+    | LET; PROVE; name = ID; vl = variable_list; EQUAL; def = expr 
+      {Lemma(name, vl, def) }
       (*
     | LET; REC; fh = function_header; EQUAL; def = expr 
       {Function(fh, def)}
-    | TYPE; type_name = ID; EQUAL; vl = variant_list
-      {Type(TypeID type_name, vl)}
       *)
+    | TYPE; type_name = ID; EQUAL; vl = type_list
+      {Type(type_name, vl)}
  
 function_header:
     | func_name = ID; params = parameter_list; COLON; type_name = ID
@@ -73,8 +73,8 @@ parameter_list:
     | LPAREN; param_ta = type_annot; RPAREN 
         {param_ta::[]}
 
-function_l:
-  | f = function_l; tap = type_annot 
+variable_list:
+  | f = variable_list; tap = type_annot 
     {f @ [tap]}
   | tap = type_annot 
     {[tap]}
@@ -95,22 +95,22 @@ function_r:
     {Function(Id(func_name), Constructor(param_name, None))}
   | func = function_r; param_name = CONSTRUCTOR
     {Function(func, Constructor(param_name, None))}
-(*
-variant_list:
-  | BAR; variant_name = CONSTRUCTOR; next_v = variant_list 
-    {Id(ConstructorID variant_name)::next_v}
-  | BAR; variant_name = CONSTRUCTOR; OF; tt = tuple_type; next_v = variant_list
-    {Constructor(ConstructorID(variant_name), TypeTuple(tt))::next_v}
+
+type_list:
+  | BAR; variant_name = CONSTRUCTOR; next_v = type_list 
+    {Constructor(variant_name, None)::next_v}
+  | BAR; variant_name = CONSTRUCTOR; OF; tt = tuple_type; next_v = type_list
+    {Constructor(variant_name, Some(ExprTuple(tt)))::next_v}
   | BAR; variant_name = CONSTRUCTOR; 
-    {Construtor(variant_name)}
+    {Constructor(variant_name, None)::[]}
   | BAR; variant_name = CONSTRUCTOR; OF; tt = tuple_type;
-    {Constructor(ConstructorID(variant_name), TypeTuple(tt))::[]}
-*)
+    {Constructor(variant_name, Some(ExprTuple(tt)))::[]}
+
 tuple_type:
   | type_name = ID; STAR; type_cont = tuple_type 
-    {TypeID (type_name)::type_cont} 
+    {Id(type_name)::type_cont} 
   | type_name = ID 
-    {TypeID (type_name)::[]} 
+    {Id(type_name)::[]} 
   | LPAREN; tt = tuple_type; RPAREN 
     {tt}
   

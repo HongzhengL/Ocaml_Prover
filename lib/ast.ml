@@ -19,6 +19,6 @@ type expr =
 type declaration =
     (*       name * variable list * expression *)
   | Lemma of string * expr list * expr
-  | Type of string * expr list
+  | Type of string * expr list 
   | RecFunction of expr * expr
 
