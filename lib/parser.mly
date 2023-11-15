@@ -49,12 +49,14 @@ prog:
     ;
 
 declaration:
-    | LET; PROVE; e = function_l; EQUAL; def = expr 
-      {Lemma(e, def)}
+    | LET; PROVE; name = ID; variable_list = function_l; EQUAL; def = expr 
+      {Lemma(name, variable_list, def) }
+      (*
     | LET; REC; fh = function_header; EQUAL; def = expr 
       {Function(fh, def)}
     | TYPE; type_name = ID; EQUAL; vl = variant_list
       {Type(TypeID type_name, vl)}
+      *)
  
 function_header:
     | func_name = ID; params = parameter_list; COLON; type_name = ID
@@ -73,37 +75,37 @@ parameter_list:
 
 function_l:
   | f = function_l; tap = type_annot 
-    {FunctionLeft (f, tap)}
-  | name = ID 
-    {Id (LemmaID name)}
+    {f @ [tap]}
+  | tap = type_annot 
+    {[tap]}
 
 function_r:
   (* functions can accept expressions as arguments only
      if the are in parentheses *)
   | func_name = ID; LPAREN; e = expr; RPAREN;
-    {FunctionRight(Id(FuncID func_name), e)}
+    {Function(Id(func_name), e)}
   | func = function_r; LPAREN; e = expr; RPAREN;
-    {FunctionRight(func, e)}
+    {Function(func, e)}
   (* otherwise they must be parameter identifications *)
   | func_name = ID; param_name = ID;
-    {FunctionRight(Id(FuncID func_name), Id(ParamID param_name))}
+    {Function(Id(func_name), Id(param_name))}
   | func = function_r; param_name = ID
-    {FunctionRight(func, Id(ParamID param_name))}
+    {Function(func, Id(param_name))}
   | func_name = ID; param_name = CONSTRUCTOR;
-    {FunctionRight(Id(FuncID func_name), Id(ConstructorID param_name))}
+    {Function(Id(func_name), Constructor(param_name, None))}
   | func = function_r; param_name = CONSTRUCTOR
-    {FunctionRight(func, Id(ConstructorID param_name))}
-
+    {Function(func, Constructor(param_name, None))}
+(*
 variant_list:
   | BAR; variant_name = CONSTRUCTOR; next_v = variant_list 
     {Id(ConstructorID variant_name)::next_v}
   | BAR; variant_name = CONSTRUCTOR; OF; tt = tuple_type; next_v = variant_list
-    {TypeConstructor(ConstructorID(variant_name), TypeTuple(tt))::next_v}
+    {Constructor(ConstructorID(variant_name), TypeTuple(tt))::next_v}
   | BAR; variant_name = CONSTRUCTOR; 
-    {Id(ConstructorID variant_name)::[] }
+    {Construtor(variant_name)}
   | BAR; variant_name = CONSTRUCTOR; OF; tt = tuple_type;
-    {TypeConstructor(ConstructorID(variant_name), TypeTuple(tt))::[]}
-
+    {Constructor(ConstructorID(variant_name), TypeTuple(tt))::[]}
+*)
 tuple_type:
   | type_name = ID; STAR; type_cont = tuple_type 
     {TypeID (type_name)::type_cont} 
@@ -114,7 +116,7 @@ tuple_type:
   
 type_annot:
   | param = ID; COLON; t = ID 
-    {TypeAnotation(ParamID param, TypeID t)}
+    {TypeAnotation(param, t)}
   | LPAREN; ta = type_annot; RPAREN 
     {ta}
 
@@ -126,15 +128,15 @@ pattern_list:
 
 constructor:
   | constructor_name = CONSTRUCTOR;
-    {Id(ConstructorID constructor_name)}
+    {Constructor(constructor_name, None)}
   | constructor_name = CONSTRUCTOR; LPAREN; et = expr_tuple; RPAREN;
-   {Constructor(ConstructorID constructor_name, ExprTuple(et))}
+   {Constructor(constructor_name, Some(ExprTuple(et)))}
 
 constructor_ta:
   | constructor_name = CONSTRUCTOR;
-    {Id(ConstructorID constructor_name)}
+    {Constructor(constructor_name, None)}
   | constructor_name = CONSTRUCTOR; tat = type_annot_tuple;
-   {Constructor(ConstructorID constructor_name, ExprTuple(tat))}
+   {Constructor(constructor_name, Some( ExprTuple(tat)))}
 
 expr_tuple:
   | e = expr; COMMA; et = expr_tuple
@@ -154,9 +156,9 @@ expr:
   | MATCH; e = expr; WITH; BAR; pl = pattern_list;
     {Match(e, pl)}
   | param = ID; 
-    {Id (ParamID param)}
+    {Id (param)}
   | e1 = expr; EQUAL; e2 = expr 
-    {Bop(Equal, e1, e2)}
+    {Equal(e1, e2)}
   | fr = function_r; 
     {fr}
   | con = constructor

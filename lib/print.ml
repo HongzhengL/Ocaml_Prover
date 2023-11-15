@@ -1,4 +1,4 @@
-let string_of_id id = match id with 
+(*let string_of_id id = match id with 
   | Ast.FuncID s -> s
   | Ast.TypeID s -> s
   | Ast.ParamID s -> s
@@ -48,4 +48,4 @@ let string_of_declaration decl = match decl with
   | Ast.Type(id, el) -> "type " ^ string_of_id id ^ " = " ^ string_of_expr_list_m el 
   | Ast.Function(e1, e2) -> "let rec " ^ string_of_expr e1 ^ " = " ^ string_of_expr e2
   
-
+*)
