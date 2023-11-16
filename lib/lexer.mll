@@ -18,8 +18,12 @@ rule read = parse
   | "*" { STAR }
   | "=" { EQUAL }
   | "," { COMMA }
+  | "(*hint:" { HINT }
+  | "axiom" { AXIOM }
+  | "induction" { INDUCTION }
   | "(*prove*)" { PROVE }
   | "(*" { comment 0 lexbuf}
+  | "*)" { RCOMMENT }
   | "(" { LPAREN }
   | ")" { RPAREN }
   | "let" { LET }
@@ -37,3 +41,4 @@ and comment level = parse
   | "(*" { comment (level + 1) lexbuf}
   | "*)" { if (level = 0) then read lexbuf else comment (level - 1) lexbuf }
   | _ { comment level lexbuf }
+  

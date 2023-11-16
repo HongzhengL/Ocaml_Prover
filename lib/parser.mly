@@ -30,6 +30,10 @@
 %token WITH
 %token TYPE
 %token OF
+%token AXIOM
+%token INDUCTION
+%token HINT
+%token RCOMMENT
 
 (*
     operator associativity and precidence. Lowest precidence is
@@ -49,25 +53,29 @@ prog:
     ;
 
 declaration:
-    | LET; PROVE; name = ID; vl = variable_list; EQUAL; def = expr 
-      {Lemma(name, vl, def) }
-      (*
+    | LET; PROVE; name = ID; vl = option(variable_list); EQUAL; def = expr; h = option(hint)
+      {Lemma(name, vl, def, h) }
     | LET; REC; fh = function_header; EQUAL; def = expr 
-      {Function(fh, def)}
-      *)
+      {RecFunction(fh, def)}
     | TYPE; type_name = ID; EQUAL; vl = type_list
       {Type(type_name, vl)}
+
+hint :
+    | HINT; AXIOM; RCOMMENT{ Axiom }
+    | HINT; INDUCTION; variable = ID; RCOMMENT { Induction variable }
  
 function_header:
     | func_name = ID; params = parameter_list; COLON; type_name = ID
-      {FunctionHeader(FuncID func_name, TypeID type_name, params)}
+      {FunctionHeader(func_name, Some type_name, params)}
+    | func_name = ID; params = parameter_list
+      {FunctionHeader(func_name, None, params)}
 
 (* Restriction on parameter type annotations: must be in parentheses*)
 parameter_list:
     | param_name = ID; param_cont = parameter_list; 
-        {Id(ParamID(param_name))::param_cont}
+        {Id( param_name )::param_cont}
     | param_name = ID; 
-        {Id(ParamID(param_name))::[]}
+        {Id(param_name)::[]}
     | LPAREN; param_ta = type_annot; RPAREN; param_cont = parameter_list; 
         {param_ta::param_cont}
     | LPAREN; param_ta = type_annot; RPAREN 
@@ -100,11 +108,11 @@ type_list:
   | BAR; variant_name = CONSTRUCTOR; next_v = type_list 
     {Constructor(variant_name, None)::next_v}
   | BAR; variant_name = CONSTRUCTOR; OF; tt = tuple_type; next_v = type_list
-    {Constructor(variant_name, Some(ExprTuple(tt)))::next_v}
+    {Constructor(variant_name, Some tt)::next_v}
   | BAR; variant_name = CONSTRUCTOR; 
     {Constructor(variant_name, None)::[]}
   | BAR; variant_name = CONSTRUCTOR; OF; tt = tuple_type;
-    {Constructor(variant_name, Some(ExprTuple(tt)))::[]}
+    {Constructor(variant_name, Some tt)::[]}
 
 tuple_type:
   | type_name = ID; STAR; type_cont = tuple_type 
@@ -130,13 +138,13 @@ constructor:
   | constructor_name = CONSTRUCTOR;
     {Constructor(constructor_name, None)}
   | constructor_name = CONSTRUCTOR; LPAREN; et = expr_tuple; RPAREN;
-   {Constructor(constructor_name, Some(ExprTuple(et)))}
+   {Constructor(constructor_name, Some et)}
 
 constructor_ta:
   | constructor_name = CONSTRUCTOR;
     {Constructor(constructor_name, None)}
   | constructor_name = CONSTRUCTOR; tat = type_annot_tuple;
-   {Constructor(constructor_name, Some( ExprTuple(tat)))}
+   {Constructor(constructor_name, Some tat )}
 
 expr_tuple:
   | e = expr; COMMA; et = expr_tuple
