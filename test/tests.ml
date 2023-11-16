@@ -93,7 +93,7 @@ let%test _ =
           ] );
     ]
 
-(* first line of sample.ml *)
+(* line 1 of sample.ml with parentheses *)
 let%test _ =
   Oprovl.Parser.prog Oprovl.Lexer.read
     (Lexing.from_string "type list = | Nil | Cons of (int * list)")
@@ -380,6 +380,37 @@ let%test _ =
     (Lexing.from_string
        "let (*prove*) rev_append (l1 : list) (l2 : list) = (reverse (append l1 \
         l2) = append (reverse l2) (reverse l1)) (*hint: induction l1 *)")
+  = [
+      Oprovl.Ast.Lemma
+        ( "rev_append",
+          Some
+            [
+              Oprovl.Ast.TypeAnotation ("l1", "list");
+              Oprovl.Ast.TypeAnotation ("l2", "list");
+            ],
+          Oprovl.Ast.Equal
+            ( Oprovl.Ast.Function
+                ( Oprovl.Ast.Id "reverse",
+                  Oprovl.Ast.Function
+                    ( Oprovl.Ast.Function
+                        (Oprovl.Ast.Id "append", Oprovl.Ast.Id "l1"),
+                      Oprovl.Ast.Id "l2" ) ),
+              Oprovl.Ast.Function
+                ( Oprovl.Ast.Function
+                    ( Oprovl.Ast.Id "append",
+                      Oprovl.Ast.Function
+                        (Oprovl.Ast.Id "reverse", Oprovl.Ast.Id "l2") ),
+                  Oprovl.Ast.Function
+                    (Oprovl.Ast.Id "reverse", Oprovl.Ast.Id "l1") ) ),
+          Some (Induction "l1") );
+    ]
+
+(* pathological comments *)
+let%test _ =
+  Oprovl.Parser.prog Oprovl.Lexer.read
+    (Lexing.from_string
+       "let (*prove*) rev_append (l1 : list) (l2 : list) = (reverse (append l1 \
+        l2) = append (reverse l2) (reverse l1)) (*hint: induction l1 *) (* (* (* break break *) *) *)")
   = [
       Oprovl.Ast.Lemma
         ( "rev_append",
