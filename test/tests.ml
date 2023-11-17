@@ -9,10 +9,10 @@ let%test _ =
         ( "cf_idempotent",
           Some [ Oprovl.Ast.TypeAnotation ("h", "int") ],
           Oprovl.Ast.Equal
-            ( Oprovl.Ast.Function
+            ( Oprovl.Ast.FunctionCall
                 ( Oprovl.Ast.Id "cf",
-                  Oprovl.Ast.Function (Oprovl.Ast.Id "cf", Oprovl.Ast.Id "h") ),
-              Oprovl.Ast.Function (Oprovl.Ast.Id "cf", Oprovl.Ast.Id "h") ),
+                  Oprovl.Ast.FunctionCall (Oprovl.Ast.Id "cf", Oprovl.Ast.Id "h") ),
+              Oprovl.Ast.FunctionCall (Oprovl.Ast.Id "cf", Oprovl.Ast.Id "h") ),
           Some Oprovl.Ast.Axiom );
     ]
 
@@ -27,9 +27,9 @@ let%test _ =
         ( "inv_involution",
           Some [ Oprovl.Ast.TypeAnotation ("h", "int") ],
           Oprovl.Ast.Equal
-            ( Oprovl.Ast.Function
+            ( Oprovl.Ast.FunctionCall
                 ( Oprovl.Ast.Id "inv",
-                  Oprovl.Ast.Function (Oprovl.Ast.Id "inv", Oprovl.Ast.Id "h")
+                  Oprovl.Ast.FunctionCall (Oprovl.Ast.Id "inv", Oprovl.Ast.Id "h")
                 ),
               Oprovl.Ast.Id "h" ),
           Some Oprovl.Ast.Axiom );
@@ -46,13 +46,13 @@ let%test _ =
         ( "cf_inv_commute",
           Some [ Oprovl.Ast.TypeAnotation ("h", "int") ],
           Oprovl.Ast.Equal
-            ( Oprovl.Ast.Function
+            ( Oprovl.Ast.FunctionCall
                 ( Oprovl.Ast.Id "cf",
-                  Oprovl.Ast.Function (Oprovl.Ast.Id "inv", Oprovl.Ast.Id "h")
+                  Oprovl.Ast.FunctionCall (Oprovl.Ast.Id "inv", Oprovl.Ast.Id "h")
                 ),
-              Oprovl.Ast.Function
+              Oprovl.Ast.FunctionCall
                 ( Oprovl.Ast.Id "inv",
-                  Oprovl.Ast.Function (Oprovl.Ast.Id "cf", Oprovl.Ast.Id "h") )
+                  Oprovl.Ast.FunctionCall (Oprovl.Ast.Id "cf", Oprovl.Ast.Id "h") )
             ),
           Some Oprovl.Ast.Axiom );
     ]
@@ -68,15 +68,15 @@ let%test _ =
         ( "cf_inv_property",
           Some [ Oprovl.Ast.TypeAnotation ("h", "int") ],
           Oprovl.Ast.Equal
-            ( Oprovl.Ast.Function
+            ( Oprovl.Ast.FunctionCall
                 ( Oprovl.Ast.Id "cf",
-                  Oprovl.Ast.Function
+                  Oprovl.Ast.FunctionCall
                     ( Oprovl.Ast.Id "inv",
-                      Oprovl.Ast.Function
+                      Oprovl.Ast.FunctionCall
                         ( Oprovl.Ast.Id "cf",
-                          Oprovl.Ast.Function
+                          Oprovl.Ast.FunctionCall
                             (Oprovl.Ast.Id "inv", Oprovl.Ast.Id "h") ) ) ),
-              Oprovl.Ast.Function (Oprovl.Ast.Id "cf", Oprovl.Ast.Id "h") ),
+              Oprovl.Ast.FunctionCall (Oprovl.Ast.Id "cf", Oprovl.Ast.Id "h") ),
           None );
     ]
 
@@ -126,8 +126,8 @@ let%test _ =
   Oprovl.Parser.prog Oprovl.Lexer.read
     (Lexing.from_string "let rec f1 (l1 : list) (l2 : list) : list = l1")
   = [
-      Oprovl.Ast.RecFunction
-        ( Oprovl.Ast.FunctionHeader
+      Oprovl.Ast.Function
+        ( Oprovl.Ast.FunctionSignature
             ( "f1",
               Some "list",
               [
@@ -142,8 +142,8 @@ let%test _ =
   Oprovl.Parser.prog Oprovl.Lexer.read
     (Lexing.from_string "let rec f1 (l1 : list) (l2 : list) = l1")
   = [
-      Oprovl.Ast.RecFunction
-        ( Oprovl.Ast.FunctionHeader
+      Oprovl.Ast.Function
+        ( Oprovl.Ast.FunctionSignature
             ( "f1",
               None,
               [
@@ -174,8 +174,8 @@ let%test _ =
        "let rec append (l1 : list) (l2 : list) : list = match l1 with | Nil -> \
         l2 | Cons ((h : int), (t : list)) -> Cons (h, append t l2)")
   = [
-      Oprovl.Ast.RecFunction
-        ( Oprovl.Ast.FunctionHeader
+      Oprovl.Ast.Function
+        ( Oprovl.Ast.FunctionSignature
             ( "append",
               Some "list",
               [
@@ -200,8 +200,8 @@ let%test _ =
                         Some
                           [
                             Oprovl.Ast.Id "h";
-                            Oprovl.Ast.Function
-                              ( Oprovl.Ast.Function
+                            Oprovl.Ast.FunctionCall
+                              ( Oprovl.Ast.FunctionCall
                                   (Oprovl.Ast.Id "append", Oprovl.Ast.Id "t"),
                                 Oprovl.Ast.Id "l2" );
                           ] ) );
@@ -218,8 +218,8 @@ let%test _ =
         ( "append_nilnil",
           None,
           Oprovl.Ast.Equal
-            ( Oprovl.Ast.Function
-                ( Oprovl.Ast.Function
+            ( Oprovl.Ast.FunctionCall
+                ( Oprovl.Ast.FunctionCall
                     ( Oprovl.Ast.Id "append",
                       Oprovl.Ast.Constructor ("Nil", None) ),
                   Oprovl.Ast.Constructor ("Nil", None) ),
@@ -243,8 +243,8 @@ let%test _ =
               Oprovl.Ast.TypeAnotation ("l", "list");
             ],
           Oprovl.Ast.Equal
-            ( Oprovl.Ast.Function
-                ( Oprovl.Ast.Function
+            ( Oprovl.Ast.FunctionCall
+                ( Oprovl.Ast.FunctionCall
                     ( Oprovl.Ast.Id "append",
                       Oprovl.Ast.Constructor
                         ("Cons", Some [ Oprovl.Ast.Id "h"; Oprovl.Ast.Id "t" ])
@@ -255,8 +255,8 @@ let%test _ =
                   Some
                     [
                       Oprovl.Ast.Id "h";
-                      Oprovl.Ast.Function
-                        ( Oprovl.Ast.Function
+                      Oprovl.Ast.FunctionCall
+                        ( Oprovl.Ast.FunctionCall
                             (Oprovl.Ast.Id "append", Oprovl.Ast.Id "t"),
                           Oprovl.Ast.Id "l" );
                     ] ) ),
@@ -274,8 +274,8 @@ let%test _ =
         ( "append_nil",
           Some [ Oprovl.Ast.TypeAnotation ("x", "list") ],
           Oprovl.Ast.Equal
-            ( Oprovl.Ast.Function
-                ( Oprovl.Ast.Function (Oprovl.Ast.Id "append", Oprovl.Ast.Id "x"),
+            ( Oprovl.Ast.FunctionCall
+                ( Oprovl.Ast.FunctionCall (Oprovl.Ast.Id "append", Oprovl.Ast.Id "x"),
                   Oprovl.Ast.Constructor ("Nil", None) ),
               Oprovl.Ast.Id "x" ),
           Some (Oprovl.Ast.Induction "x") );
@@ -288,8 +288,8 @@ let%test _ =
        "let rec reverse (l : list) : list = match l with | Nil -> Nil | Cons \
         ((h : int), (t : list)) -> append (reverse t) (Cons (h, Nil))")
   = [
-      Oprovl.Ast.RecFunction
-        ( Oprovl.Ast.FunctionHeader
+      Oprovl.Ast.Function
+        ( Oprovl.Ast.FunctionSignature
             ("reverse", Some "list", [ Oprovl.Ast.TypeAnotation ("l", "list") ]),
           Oprovl.Ast.Match
             ( Oprovl.Ast.Id "l",
@@ -305,10 +305,10 @@ let%test _ =
                             Oprovl.Ast.TypeAnotation ("h", "int");
                             Oprovl.Ast.TypeAnotation ("t", "list");
                           ] ),
-                    Oprovl.Ast.Function
-                      ( Oprovl.Ast.Function
+                    Oprovl.Ast.FunctionCall
+                      ( Oprovl.Ast.FunctionCall
                           ( Oprovl.Ast.Id "append",
-                            Oprovl.Ast.Function
+                            Oprovl.Ast.FunctionCall
                               (Oprovl.Ast.Id "reverse", Oprovl.Ast.Id "t") ),
                         Oprovl.Ast.Constructor
                           ( "Cons",
@@ -331,9 +331,9 @@ let%test _ =
         ( "rev_rev",
           Some [ Oprovl.Ast.TypeAnotation ("x", "list") ],
           Oprovl.Ast.Equal
-            ( Oprovl.Ast.Function
+            ( Oprovl.Ast.FunctionCall
                 ( Oprovl.Ast.Id "reverse",
-                  Oprovl.Ast.Function
+                  Oprovl.Ast.FunctionCall
                     (Oprovl.Ast.Id "reverse", Oprovl.Ast.Id "x") ),
               Oprovl.Ast.Id "x" ),
           Some Oprovl.Ast.Axiom );
@@ -356,19 +356,19 @@ let%test _ =
               Oprovl.Ast.TypeAnotation ("l3", "list");
             ],
           Oprovl.Ast.Equal
-            ( Oprovl.Ast.Function
-                ( Oprovl.Ast.Function
+            ( Oprovl.Ast.FunctionCall
+                ( Oprovl.Ast.FunctionCall
                     ( Oprovl.Ast.Id "append",
-                      Oprovl.Ast.Function
-                        ( Oprovl.Ast.Function
+                      Oprovl.Ast.FunctionCall
+                        ( Oprovl.Ast.FunctionCall
                             (Oprovl.Ast.Id "append", Oprovl.Ast.Id "l1"),
                           Oprovl.Ast.Id "l2" ) ),
                   Oprovl.Ast.Id "l3" ),
-              Oprovl.Ast.Function
-                ( Oprovl.Ast.Function
+              Oprovl.Ast.FunctionCall
+                ( Oprovl.Ast.FunctionCall
                     (Oprovl.Ast.Id "append", Oprovl.Ast.Id "l1"),
-                  Oprovl.Ast.Function
-                    ( Oprovl.Ast.Function
+                  Oprovl.Ast.FunctionCall
+                    ( Oprovl.Ast.FunctionCall
                         (Oprovl.Ast.Id "append", Oprovl.Ast.Id "l2"),
                       Oprovl.Ast.Id "l3" ) ) ),
           Some (Oprovl.Ast.Induction "l1") );
@@ -389,18 +389,18 @@ let%test _ =
               Oprovl.Ast.TypeAnotation ("l2", "list");
             ],
           Oprovl.Ast.Equal
-            ( Oprovl.Ast.Function
+            ( Oprovl.Ast.FunctionCall
                 ( Oprovl.Ast.Id "reverse",
-                  Oprovl.Ast.Function
-                    ( Oprovl.Ast.Function
+                  Oprovl.Ast.FunctionCall
+                    ( Oprovl.Ast.FunctionCall
                         (Oprovl.Ast.Id "append", Oprovl.Ast.Id "l1"),
                       Oprovl.Ast.Id "l2" ) ),
-              Oprovl.Ast.Function
-                ( Oprovl.Ast.Function
+              Oprovl.Ast.FunctionCall
+                ( Oprovl.Ast.FunctionCall
                     ( Oprovl.Ast.Id "append",
-                      Oprovl.Ast.Function
+                      Oprovl.Ast.FunctionCall
                         (Oprovl.Ast.Id "reverse", Oprovl.Ast.Id "l2") ),
-                  Oprovl.Ast.Function
+                  Oprovl.Ast.FunctionCall
                     (Oprovl.Ast.Id "reverse", Oprovl.Ast.Id "l1") ) ),
           Some (Induction "l1") );
     ]
@@ -420,18 +420,18 @@ let%test _ =
               Oprovl.Ast.TypeAnotation ("l2", "list");
             ],
           Oprovl.Ast.Equal
-            ( Oprovl.Ast.Function
+            ( Oprovl.Ast.FunctionCall
                 ( Oprovl.Ast.Id "reverse",
-                  Oprovl.Ast.Function
-                    ( Oprovl.Ast.Function
+                  Oprovl.Ast.FunctionCall
+                    ( Oprovl.Ast.FunctionCall
                         (Oprovl.Ast.Id "append", Oprovl.Ast.Id "l1"),
                       Oprovl.Ast.Id "l2" ) ),
-              Oprovl.Ast.Function
-                ( Oprovl.Ast.Function
+              Oprovl.Ast.FunctionCall
+                ( Oprovl.Ast.FunctionCall
                     ( Oprovl.Ast.Id "append",
-                      Oprovl.Ast.Function
+                      Oprovl.Ast.FunctionCall
                         (Oprovl.Ast.Id "reverse", Oprovl.Ast.Id "l2") ),
-                  Oprovl.Ast.Function
+                  Oprovl.Ast.FunctionCall
                     (Oprovl.Ast.Id "reverse", Oprovl.Ast.Id "l1") ) ),
           Some (Induction "l1") );
     ]

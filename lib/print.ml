@@ -14,7 +14,7 @@ let rec string_of_expr expr =
       match expr_list_opt with
       | None -> ""
       | Some lst -> " (" ^ string_of_expr_tuple lst ^ ")")
-  | Ast.Function (e1, e2) -> (
+  | Ast.FunctionCall (e1, e2) -> (
       string_of_expr e1
       ^
       match e2 with
@@ -22,7 +22,7 @@ let rec string_of_expr expr =
       | Ast.Constructor (s, None) -> " " ^ s
       | _ -> " (" ^ string_of_expr e2 ^ ")")
   | Ast.Equal (e1, e2) -> string_of_expr e1 ^ " = " ^ string_of_expr e2
-  | Ast.FunctionHeader (func_name, func_return_type, parameters) -> (
+  | Ast.FunctionSignature (func_name, func_return_type, parameters) -> (
       func_name ^ " "
       ^ string_of_expr_list parameters
       ^ match func_return_type with None -> "" | Some rt -> " : " ^ rt)
@@ -93,7 +93,7 @@ let string_of_declaration decl =
         | _ -> "")
       ^ " = " ^ string_of_expr def ^ " "
       ^ string_of_hint_option hint_opt
-  | Ast.RecFunction (function_header, function_body) ->
+  | Ast.Function (function_header, function_body) ->
       "let rec "
       ^ string_of_expr function_header
       ^ " = "

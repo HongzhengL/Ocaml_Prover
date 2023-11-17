@@ -56,7 +56,7 @@ declaration:
     | LET; PROVE; name = ID; vl = option(variable_list); EQUAL; def = expr; h = option(hint)
       {Lemma(name, vl, def, h) }
     | LET; REC; fh = function_header; EQUAL; def = expr 
-      {RecFunction(fh, def)}
+      {Function(fh, def)}
     | TYPE; type_name = ID; EQUAL; vl = type_list
       {Type(type_name, vl)}
 
@@ -66,9 +66,9 @@ hint :
  
 function_header:
     | func_name = ID; params = parameter_list; COLON; type_name = ID
-      {FunctionHeader(func_name, Some type_name, params)}
+      {FunctionSignature(func_name, Some type_name, params)}
     | func_name = ID; params = parameter_list
-      {FunctionHeader(func_name, None, params)}
+      {FunctionSignature(func_name, None, params)}
 
 (* Restriction on parameter type annotations: must be in parentheses*)
 parameter_list:
@@ -91,18 +91,18 @@ function_r:
   (* functions can accept expressions as arguments only
      if the are in parentheses *)
   | func_name = ID; LPAREN; e = expr; RPAREN;
-    {Function(Id(func_name), e)}
+    {FunctionCall(Id(func_name), e)}
   | func = function_r; LPAREN; e = expr; RPAREN;
-    {Function(func, e)}
+    {FunctionCall(func, e)}
   (* otherwise they must be parameter identifications *)
   | func_name = ID; param_name = ID;
-    {Function(Id(func_name), Id(param_name))}
+    {FunctionCall(Id(func_name), Id(param_name))}
   | func = function_r; param_name = ID
-    {Function(func, Id(param_name))}
+    {FunctionCall(func, Id(param_name))}
   | func_name = ID; param_name = CONSTRUCTOR;
-    {Function(Id(func_name), Constructor(param_name, None))}
+    {FunctionCall(Id(func_name), Constructor(param_name, None))}
   | func = function_r; param_name = CONSTRUCTOR
-    {Function(func, Constructor(param_name, None))}
+    {FunctionCall(func, Constructor(param_name, None))}
 
 type_list:
   | BAR; variant_name = CONSTRUCTOR; next_v = type_list 

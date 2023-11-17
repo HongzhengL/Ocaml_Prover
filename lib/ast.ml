@@ -3,9 +3,9 @@ type expr =
   | Id of string
   | Constructor of string * expr list option
   | TypeAnotation of string * string
-  | Function of expr * expr
+  | FunctionCall of expr * expr
   (* function name, function return type (optinal) list of function parameters*)
-  | FunctionHeader of string * string option * expr list
+  | FunctionSignature of string * string option * expr list
   | Equal of expr * expr
   (* 
      thing we are matching * 
@@ -25,5 +25,5 @@ type declaration =
     (*       name * variable list * expression * hint option        *)
   | Lemma of string * expr list option * expr * hint option
   | Type of string * expr list 
-  | RecFunction of expr * expr
+  | Function of expr * expr
 
