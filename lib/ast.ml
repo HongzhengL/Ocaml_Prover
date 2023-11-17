@@ -1,19 +1,29 @@
-type bop = Equal
 
-type id = 
-  | FuncID of string
-  | TypeID of string
-  | ParamID of string
-  | LemmaID of string
+type expr =
+  | Id of string
+  | Constructor of string * expr list option
+  | TypeAnotation of string * string
+  | FunctionCall of expr * expr
+  (* function name, function return type (optinal) list of function parameters*)
+  | FunctionSignature of string * string option * expr list
+  | Equal of expr * expr
+  (* 
+     thing we are matching * 
+     pattern list 
+  *)
+  | Match of expr * expr list
+  (*
+     (constructor (expr1)) -> (expr2)
+  *)
+  | Pattern of expr * expr
 
-type expr=
-  | Id of id
-  | TypeAnotation of id * id
-  | FunctionLeft of expr * expr
-  | FunctionRight of id * expr
-  | Bop of bop * expr * expr
+type hint = 
+  | Axiom
+  | Induction of string
 
-type declaration = 
-  | Proof of expr * expr
-  | Expr of expr
+type declaration =
+    (*       name * variable list * expression * hint option        *)
+  | Lemma of string * expr list option * expr * hint option
+  | Type of string * expr list 
+  | Function of expr * expr
 

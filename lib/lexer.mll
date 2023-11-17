@@ -3,19 +3,27 @@
 }
 
 let white = [' ' '\t']+
+let lowerletter = ['a'-'z']
+let upperletter = ['A'-'Z']
 let digit = ['0'-'9']
-let int = '-'? digit+
-let letter = ['a'-'z' 'A'-'A' '_']
-let id = letter+
+let idbody = lowerletter | upperletter | digit | '_'
+let id = lowerletter idbody*
+let constructor = upperletter idbody*
 let newline = '\r' | '\n' | "\n\r" | "\r\n"
 
 rule read = parse
   | newline { Lexing.new_line lexbuf; read lexbuf}
   | white { read lexbuf }
   | ":" { COLON }
+  | "*" { STAR }
   | "=" { EQUAL }
+  | "," { COMMA }
+  | "(*hint:" { HINT }
+  | "axiom" { AXIOM }
+  | "induction" { INDUCTION }
   | "(*prove*)" { PROVE }
-  | "(*" { comment lexbuf}
+  | "(*" { comment 0 lexbuf}
+  | "*)" { RCOMMENT }
   | "(" { LPAREN }
   | ")" { RPAREN }
   | "let" { LET }
@@ -27,7 +35,10 @@ rule read = parse
   | "of" { OF }
   | "->" { ARROW }
   | id { ID (Lexing.lexeme lexbuf) }
+  | constructor { CONSTRUCTOR (Lexing.lexeme lexbuf)}
   | eof { EOF }
-and comment = parse
-  | "*)" { read lexbuf }
-  | _ { comment lexbuf }
+and comment level = parse
+  | "(*" { comment (level + 1) lexbuf}
+  | "*)" { if (level = 0) then read lexbuf else comment (level - 1) lexbuf }
+  | _ { comment level lexbuf }
+  
