@@ -1,5 +1,6 @@
 {
     open Parser
+    exception SyntaxError of string
 }
 
 let white = [' ' '\t']+
@@ -40,5 +41,7 @@ rule read = parse
 and comment level = parse
   | "(*" { comment (level + 1) lexbuf}
   | "*)" { if (level = 0) then read lexbuf else comment (level - 1) lexbuf }
+  | newline { Lexing.new_line lexbuf; comment level lexbuf }
   | _ { comment level lexbuf }
+  | eof { raise (SyntaxError "Unclosed comment") }
   
