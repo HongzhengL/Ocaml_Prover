@@ -110,3 +110,6 @@ let (*prove*) append_assoc (l1 : list) (l2 : list) (l3 : list)
 let (*prove*) rev_append (l1 : list) (l2 : list)
 = (reverse (append l1 l2) = append (reverse l2) (reverse l1))
 (*hint: induction l1 *)
+
+let (*prove*) append_list (x : list) (y : list)
+  = (append (append x y) Nil = (append y) x)

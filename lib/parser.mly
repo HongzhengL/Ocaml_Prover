@@ -103,6 +103,8 @@ function_r:
     {FunctionCall(Id(func_name), Constructor(param_name, None))}
   | func = function_r; param_name = CONSTRUCTOR
     {FunctionCall(func, Constructor(param_name, None))}
+  | LPAREN; e = expr; RPAREN; param_name = ID;
+    {FunctionCall(e, Id(param_name))}
 
 type_list:
   | BAR; variant_name = CONSTRUCTOR; next_v = type_list 
