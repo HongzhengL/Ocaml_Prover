@@ -7,6 +7,7 @@ change.
 *)
 
 let string_of_declaration = Oprovl.Print.string_of_declaration
+let string_of_proof = Oprovl.Rewrite.produce_output_simple
 let mainParser = Oprovl.Parser.prog
 let mainLexer = Oprovl.Lexer.read
 module Parser : (sig exception Error end) = Oprovl.Parser
@@ -25,6 +26,10 @@ different for you:
 (* has a side-effect (namely: it prints) so it belongs here *)
 let print_all = Stdlib.List.map (fun decl -> print_endline (string_of_declaration
 decl))
+
+let prove_all = (fun decls -> print_endline (string_of_proof decls))
+
+
 (* An improved function to parse everything from a 'channel'.
  * It has a side-effect (namely: reads from an input-channel)
  * The filename is passed for error-reporting purposes only
@@ -65,6 +70,19 @@ match mainParser mainLexer buf with
         string_of_int (pos.pos_cnum - pos.pos_bol)^
         ":\n Syntax error")
 
+let with_open_file fn (filename : string) (chan : in_channel)
+        = let buf = Lexing.from_channel ~with_positions:true chan in
+        (* Lexing.set_filename buf filename; If your ocaml is new enough, this line may help improve error messages. *)
+        match mainParser mainLexer buf with
+        | ast -> let _ = fn ast in ()
+        | exception Parser.Error ->
+           let pos = buf.lex_start_p in
+           (* location is formatted such that it becomes clickable in vscode,
+              use ctrl-click or cmd-click *)
+           print_endline ("File \""^filename^"\", line "^
+                           string_of_int pos.pos_lnum^", character "^
+                           string_of_int (pos.pos_cnum - pos.pos_bol)^
+                           ":\n  Syntax error")
 (* This function is borrowed largely from Janestreet's core library *)
 (* It is used to ensure that files get closed after they are opened *)
 let protectx f x (finally : _ -> unit) =
@@ -87,6 +105,10 @@ let printfile (filename : string) : unit
 (Stdlib.open_in_gen [ Open_rdonly ] 0o000 filename)
 Stdlib.close_in
 
+let with_file fn (filename : string) : unit
+ = protectx (with_open_file fn filename)
+            (Stdlib.open_in_gen [ Open_rdonly ] 0o000 filename)
+            Stdlib.close_in
 
 (***********************************************************)
 (* here's the code for dealing with command line arguments *)
@@ -100,7 +122,8 @@ It's simply given by a list of triples:
     the middle element is code for what the argument 'does'.
     Note that "Arg.String" takes a function of type: string -> unit.
     This is where we plug in the 'printfile' function we wrote above. *)
-let speclist = [("--printback", Arg.String printfile, "Print the parsed file back out")]
+let speclist = [("--printback", Arg.String printfile, "Print the parsed file back out");
+                ("--simple", Arg.String (with_file prove_all), "Parse the file, but don't print anything")]
 let _ = Arg.parse speclist
 
 (* the next argument is for parsing strings not in the speclist.
