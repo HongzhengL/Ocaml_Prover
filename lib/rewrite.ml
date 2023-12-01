@@ -1,3 +1,11 @@
+module Parser = Parser
+module Lexer = Lexer
+
+let parse (s : string) : Ast.expr =
+  let lexbuf = Lexing.from_string s in
+  let ast = Parser.expr_eof Lexer.read lexbuf in
+     ast
+
 module type Substitution = sig
   type expression  (* You need to define this type *)
   
@@ -6,30 +14,84 @@ module type Substitution = sig
   val singleton : string -> expression -> t
   val merge : t -> t -> t option
   val find : string -> t -> expression option
+  val match_expr : expression list -> expression -> expression -> t option
+
 end
 
-(* module Substitution = struct
+module Substitution = struct
   module MM = Map.Make(String)
-  type expression  (* This should be defined to represent your expressions *)
+  type expression = Ast.expr
   
   type t = expression MM.t
 
   let empty = MM.empty
 
-  let singleton key expr = MM.singleton key expr
+  let singleton key expr = MM.add key expr MM.empty
 
-  let merge s1 s2 =
-    MM.merge (fun key expr1_opt expr2_opt ->
-      match expr1_opt, expr2_opt with
-      | Some expr1, Some expr2 -> 
-          (* Define logic to handle conflicts here. Return None if conflict *)
-          ...
-      | Some expr, None | None, Some expr -> Some expr
-      | None, None -> None
-    ) s1 s2
+  let to_list (m : 'a MM.t) : (MM.key * 'a) list = MM.bindings m
+
+  let rec merge_list l1 s2 = match l1 with
+    | (k, v) :: t -> (if (match (MM.find_opt k s2) with
+      | Some e -> not (e = v)
+      | None -> false) then None else merge_list t (MM.add k v s2))
+    | [] -> Some s2
+
+  let merge s1 s2 = merge_list (to_list s1) s2
 
   let find key s = MM.find_opt key s
-end *)
+
+  let rec get_variables exprs = match exprs with
+    | h :: t -> (match h with
+      | Ast.Id s -> s :: get_variables t
+      | Ast.TypeAnotation (e, _) -> e :: get_variables t
+      | _ -> get_variables t)
+    | [] -> []
+
+  let rec match_expr variables pattern goal = match (pattern, goal) with
+    | (Ast.Id p, Ast.Id g) -> if List.mem p variables then Some (singleton p (Ast.Id g)) 
+                              else (if p = g then Some empty else None) 
+    | (Ast.Id p, e) -> if List.mem p variables then Some (singleton p e) else None
+    | (Ast.FunctionCall (p_left, p_right), Ast.FunctionCall (g_left, g_right)) -> 
+      (match (match_expr variables p_left g_left, match_expr variables p_right g_right) with
+      | (Some s1, Some s2) -> merge s1 s2
+      | (_, _) -> None)
+    | (Ast.Constructor(nm_left, expr_list_opt_left), Ast.Constructor(nm_right, expr_list_opt_right)) -> 
+      if nm_left = nm_right then
+        (match (expr_list_opt_left, expr_list_opt_right) with
+        | (Some expr_list_left, Some expr_list_right) -> 
+          match_expr_list variables expr_list_left expr_list_right
+        | (None, None) -> Some empty
+        | (_, _) -> None)
+      else None
+    | (_, _) -> None
+  and match_expr_list variables expr_list_left expr_list_right = match (expr_list_left, expr_list_right) with
+    | (h1 :: t1, h2 :: t2) -> 
+      (match (match_expr variables h1 h2, match_expr_list variables t1 t2) with
+      | (Some s1, Some s2) -> merge s1 s2
+      | (None, None) -> merge empty empty
+      | (_, _) -> None)
+    | ([], []) -> Some empty
+    | (_, _) -> None 
+
+  let rec apply_single key value expr = match expr with
+  | Ast.Id s -> if s = key then value else Ast.Id s
+  | Ast.FunctionCall (e1, e2) -> Ast.FunctionCall (apply_single key value e1, apply_single key value e2)
+  | Constructor (nm, expr_list_opt) -> 
+    (match expr_list_opt with
+    | Some expr_list -> Constructor (nm, Some (apply_single_list key value expr_list))
+    | None -> Constructor (nm, None))
+  | expr -> expr
+  and apply_single_list key value expr_list = match expr_list with
+  | h :: t -> (apply_single key value h) :: apply_single_list key value t
+  | [] -> []
+
+  let apply sub expr = 
+    let rec apply_helper sub expr = match sub with
+    | (key, value) :: t -> apply_helper t (apply_single key value expr)
+    | [] -> expr
+    in
+    apply_helper (to_list sub) expr
+end
 
 (* 
 * attemptRewrite : string list -> equality -> expression -> expression option
@@ -47,24 +109,72 @@ end *)
 * produce_output_simple : declaration list -> string 
 *)
 
-(* let attemptRewrite (variables : string list) (equality : Ast.expr) (expr : Ast.expr) : Ast.expr option =
-  failwith "unimplemented" *)
+let rec attemptRewrite (variables : Ast.expr list) (equality : Ast.expr) (expr : Ast.expr) : Ast.expr option =
+  match equality with
+  | Ast.Equal(e1, e2) -> 
+    (match Substitution.match_expr (Substitution.get_variables variables) e1 expr with
+    | Some sub -> Some (Substitution.apply sub e2)
+    | None -> (
+      match expr with
+      | Ast.FunctionCall (left, right) -> (
+        match (attemptRewrite variables equality left, attemptRewrite variables equality right) with
+        | (Some rst, None) -> Some (Ast.FunctionCall (rst, right))
+        | (None, Some rst) -> Some (Ast.FunctionCall (left, rst))
+        | (None, None) -> None
+        | (Some _, Some _) -> None
+      )
+      | _ -> None 
+    )
+    )
+  | _ -> None
+
+
+let getVar (vars : Ast.expr list option) = match vars with
+  | Some e -> e
+  | None -> []
 
 (* 
  * tryEqualities : expression -> (string * string list * equality) list -> (string * expression) option
  *   Given an expression, tries to apply each equality in the list. Returns the name of
  *   the rule that was successfully applied and the resulting expression   
 *)
-(* let tryEqualities (expr : Ast.expr) (equalities : (string * string list * Ast.expr) list) : (string * Ast.expr) option =
-  failwith "unimplemented"
+let rec tryEqualities (expr : Ast.expr) (equalities : (string * Ast.expr list option * Ast.expr) list) : (string * Ast.expr) option =
+  match equalities with
+    | (name, variables, equality) :: t -> 
+        (match attemptRewrite (getVar variables) equality expr with
+        | Some e -> Some (name, e)
+        | None -> tryEqualities expr t)
+    | [] -> None
 
-let performSteps (expr : Ast.expr) (equalities : (string * string list * Ast.expr) list) : (string * Ast.expr) list =
-  failwith "unimplemented"
+let rec performSteps (expr : Ast.expr) (equalities : (string * Ast.expr list option * Ast.expr) list) : (string * Ast.expr) list =
+  match tryEqualities expr equalities with
+  | Some (name, e) -> (name, e) :: performSteps e equalities
+  | None -> []
+  
+let rec printSteps (steps : (string * Ast.expr) list) : string list =
+  match steps with
+  | (name, expr) :: t -> ("= { " ^ name ^ " }\n" ^ Print.string_of_expr expr ^ "\n") :: printSteps t
+  | [] -> []
 
-let produceProof (equality : Ast.expr) (equalities : (string * string list * Ast.expr) list) : string list =
-  failwith "unimplemented" *)
+exception SyntaxError of string
+let produceProof (equality : Ast.expr) (equalities : (string * Ast.expr list option * Ast.expr) list) : string list =
+  match equality with
+  | Equal (left, right) -> 
+    (let left_steps =  performSteps left equalities in
+      if List.length left_steps > 0 then
+        (printSteps left_steps )
+      else
+        ["= { ??? }\n" ^ Print.string_of_expr right ^ "\n"]
+    )
+  | _ -> raise (SyntaxError "Expected an equality")
+  
+let rec list_to_string (l : string list) : string =
+  match l with
+  | h :: t -> h ^ list_to_string t
+  | [] -> ""
 
-let processLemma (name, (def : Ast.expr), (hint_opt : Ast.hint option))=
+(* let processLemma (name, (variables : Ast.expr list option), (def : Ast.expr), (hint_opt : Ast.hint option)) (lemma_list : (string * Ast.expr list option * Ast.expr) list)= *)
+let processLemma (name, (def : Ast.expr), (hint_opt : Ast.hint option)) (lemma_list : (string * Ast.expr list option * Ast.expr) list)=
   match hint_opt with
   | Some Axiom -> 
       (match def with
@@ -73,29 +183,17 @@ let processLemma (name, (def : Ast.expr), (hint_opt : Ast.hint option))=
         ^ "\n= {axiom}\n" ^ Print.string_of_expr e2 ^ "\n"
       | _ -> failwith "Expected an equality, but " ^ Print.string_of_expr def ^ " was given")
   | Some (Induction _) -> failwith "unimplemented"
-  | None -> failwith "unimplemented"
-    (* (match tryEqualities with
-      | Some (s, e) -> Some (s, e)
-      | None -> None) *)
+  | None -> 
+      (match def with
+      | Ast.Equal (e1, _) -> "Proof of " ^ name ^ ":\n" ^
+        Print.string_of_expr e1 ^ "\n" ^ list_to_string (produceProof def lemma_list)
+      | _ -> failwith "Expected an equality, but " ^ Print.string_of_expr def ^ " was given"
+      )
 
-(* let processType (decl : Ast.declaration) =
-  failwith "unimplemented"
-
-let processFunction (decl : Ast.declaration) =
-  failwith "unimplemented" *)
-
-(* let rec produce_output_simple (decls : Ast.declaration list) : string =
-  match decls with
-  | h :: t -> (match h with 
-    | Ast.Lemma(name, _, def, hint_opt) ->
-      processLemma (name, def, hint_opt) ^ "\n" ^ produce_output_simple t
-    | Ast.Type (_,_)->
-      failwith "unimplemented"
-      (* processType h ^ "\n" ^ produce_output_simple t *)
-    | Ast.Function (_,_)->
-      failwith "unimplemented"
-      (* processFunction h ^ "\n" ^ produce_output_simple t *)
-  )
+(* Debug function *)
+(* let rec print_lemma lemma_list =
+  match lemma_list with
+  | (name, _, def) :: t -> name ^ " : " ^ Print.string_of_expr def ^ "\n" ^ print_lemma t
   | [] -> "" *)
 
 let produce_output_simple (decls : Ast.declaration list) : string =
@@ -104,18 +202,17 @@ let produce_output_simple (decls : Ast.declaration list) : string =
   match decls with
     | h :: t -> 
       (match h with 
-        | Ast.Lemma(name, _, def, hint_opt) ->
-          let new_acc = (("lemma " ^ name), def)::acc in
-            let result = processLemma (name, def, hint_opt) ^ "\n" in
-              result ^ helper t new_acc
+        | Ast.Lemma(name, variables, def, hint_opt) ->
+          (let new_acc = (("lemma " ^ name), variables, def)::acc in
+            let result = processLemma (name, def, hint_opt) acc ^ "\n" in
+              result ^ helper t new_acc)
         | Ast.Type (_,_)->
           failwith "unimplemented"
-          (* processType h ^ "\n" ^ helper t acc *)
         | Ast.Function (_,_)->
           failwith "unimplemented"
-          (* processFunction h ^ "\n" ^ helper t acc *)
       )
-    | [] -> ""(* Combine the results from acc here *)
+    | [] -> ""
+              (* ^ print_lemma acc *)
   in
   helper decls []
 
