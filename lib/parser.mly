@@ -43,6 +43,7 @@
 %nonassoc BAR
 %left EQUAL
 (* start with a rule named "prog" *)
+%start <Ast.expr> expr_eof
 %start <Ast.declaration list> prog
 %%
 
@@ -51,7 +52,8 @@ prog:
     | d1 = declaration; cont = prog { d1::cont }
     | d = declaration; EOF { d::[] }
     ;
-
+expr_eof:
+    | e = expr; EOF { e }
 declaration:
     | LET; PROVE; name = ID; vl = option(variable_list); EQUAL; def = expr; h = option(hint)
       {Lemma(name, vl, def, h) }
