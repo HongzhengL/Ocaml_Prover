@@ -156,13 +156,26 @@ let rec printSteps (steps : (string * Ast.expr) list) : string list =
   | (name, expr) :: t -> ("= { " ^ name ^ " }\n" ^ Print.string_of_expr expr ^ "\n") :: printSteps t
   | [] -> []
 
+let rec printRightSteps (steps : (string * Ast.expr) list) : string list =
+  match steps with
+  | (name1, _) :: (name2, expr2) :: t -> ("= { " ^ name1 ^ " }\n" ^ Print.string_of_expr expr2 ^ "\n") :: printRightSteps ((name2, expr2)::t)
+  | [(name, _)] -> ("= { " ^ name ^ " }\n") :: []
+  | [] -> []
+
+let rec verifyRHS (expr : Ast.expr) (steps : (string * Ast.expr) list) : bool =
+  match steps with
+  | [(_, e)] -> expr = e
+  | _ :: t -> verifyRHS expr t
+  | [] -> false
+
 exception SyntaxError of string
 let produceProof (equality : Ast.expr) (equalities : (string * Ast.expr list option * Ast.expr) list) : string list =
   match equality with
   | Equal (left, right) -> 
     (let left_steps =  performSteps left equalities in
-      if List.length left_steps > 0 then
-        (printSteps left_steps )
+    let right_steps = performSteps right equalities in
+      if List.length left_steps > 0  then
+        (printSteps left_steps) @ (printSteps right_steps)
       else
         ["= { ??? }\n" ^ Print.string_of_expr right ^ "\n"]
     )
@@ -182,7 +195,12 @@ let processLemma (name, (def : Ast.expr), (hint_opt : Ast.hint option)) (lemma_l
         name ^ " is assumed as an axiom:\n" ^ Print.string_of_expr e1 
         ^ "\n= {axiom}\n" ^ Print.string_of_expr e2 ^ "\n"
       | _ -> failwith "Expected an equality, but " ^ Print.string_of_expr def ^ " was given")
-  | Some (Induction _) -> failwith "unimplemented"
+  | Some (Induction x) -> 
+      (match def with
+      | Ast.Equal (e1, e2) -> 
+        name ^ " is proved by induction on " ^ x ^ ":\n" ^ Print.string_of_expr e1 
+        ^ "\n= {induction on " ^ x ^ "}\n" ^ Print.string_of_expr e2 ^ "\n"
+      | _ -> failwith "Expected an equality, but " ^ Print.string_of_expr def ^ " was given")
   | None -> 
       (match def with
       | Ast.Equal (e1, _) -> "Proof of " ^ name ^ ":\n" ^
@@ -191,10 +209,60 @@ let processLemma (name, (def : Ast.expr), (hint_opt : Ast.hint option)) (lemma_l
       )
 
 (* Debug function *)
-(* let rec print_lemma lemma_list =
+let rec print_lemma lemma_list =
   match lemma_list with
   | (name, _, def) :: t -> name ^ " : " ^ Print.string_of_expr def ^ "\n" ^ print_lemma t
-  | [] -> "" *)
+  | [] -> ""
+
+(* let getFunctionSimple (function_header : Ast.function_header) (function_body : Ast.expr) : (string * Ast.expr list option * Ast.expr) list =
+  match function_header with
+  | Ast.FunctionSignature (name, _, variables) -> [(name, Some variables, function_body)]
+  | _ -> raise (SyntaxError "Expected a function signature") *)
+  
+let rec tuple_to_string (t : Ast.expr list) : string =
+  match t with
+  | [Ast.TypeAnotation(name, _)] -> name
+  | Ast.TypeAnotation(name, _) :: t -> name ^ ", " ^ tuple_to_string t
+  | [] -> ""
+  | _ -> raise (SyntaxError "tuple_to_string: Expected a type anotation")
+
+let getCons(expr : Ast.expr) : string =
+  match expr with
+  | Ast.Constructor (nm, None) -> nm
+  | Ast.Constructor (nm, Some tuple) -> 
+    nm ^ " (" ^ (tuple_to_string tuple) ^ ")"
+  | _ -> raise (SyntaxError "getCons: Expected a constructor")
+
+let rec getParams (params : Ast.expr) : string =
+  match params with
+  | Ast.FunctionSignature(name, type_name, param) -> 
+    (match param with
+    | Ast.Id s :: t -> s ^ " " ^ getParams (Ast.FunctionSignature(name, type_name, t))
+    | Ast.TypeAnotation (s, _) :: t -> s ^ " " ^ getParams (Ast.FunctionSignature(name, type_name, t))
+    | [] -> ""
+    | _ -> raise (SyntaxError "getParams: Expected an id")
+    )
+  | _ -> raise (SyntaxError "getParams: Expected a function signature")
+
+let rec getFunctionRec (name : string) (function_header:Ast.expr) (function_body : Ast.expr) : Ast.expr list =
+  match function_body with
+  | Ast.Match (expr, expr_list) -> 
+    (match expr_list with
+      | Pattern(left, e) :: t ->
+        parse (Print.string_of_expr 
+          (Substitution.apply (Substitution.singleton (Print.string_of_expr expr) 
+          (parse(getCons left))) 
+          (parse (name ^ " " ^ getParams function_header))) 
+          ^ 
+          " = " 
+          ^ 
+          Print.string_of_expr e) 
+          :: getFunctionRec name function_header (Ast.Match(expr, t))
+      | [] -> []
+      | _ -> raise (SyntaxError "getFunctionRec: Expected a pattern")
+    )
+  | _ -> raise (SyntaxError "getFunctionRec: Expected a match expression")
+  
 
 let produce_output_simple (decls : Ast.declaration list) : string =
   (* Define a nested helper function with an accumulator *)
@@ -203,16 +271,23 @@ let produce_output_simple (decls : Ast.declaration list) : string =
     | h :: t -> 
       (match h with 
         | Ast.Lemma(name, variables, def, hint_opt) ->
-          (let new_acc = (("lemma " ^ name), variables, def)::acc in
+          (let new_acc = acc @ [(("lemma " ^ name), variables, def)] in
             let result = processLemma (name, def, hint_opt) acc ^ "\n" in
               result ^ helper t new_acc)
         | Ast.Type (_,_)->
           failwith "unimplemented"
-        | Ast.Function (_,_)->
-          failwith "unimplemented"
+        | Ast.Function (function_header, function_body)->
+        (match function_header with
+        | Ast.FunctionSignature (name, _, variables) ->
+          let function_records = getFunctionRec name function_header function_body in
+          let new_acc_entries = List.map (fun record -> ("definition of " ^ name, Some variables, record)) function_records in
+          let acc1 = acc @ new_acc_entries in
+          helper t acc1
+        | _ -> raise (SyntaxError "Expected a function signature")
+        )
       )
     | [] -> ""
-              (* ^ print_lemma acc *)
+              ^ print_lemma acc
   in
   helper decls []
 
