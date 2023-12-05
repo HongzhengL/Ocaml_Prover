@@ -151,9 +151,22 @@ let rec performSteps (expr : Ast.expr) (equalities : (string * Ast.expr list opt
   | Some (name, e) -> (name, e) :: performSteps e equalities
   | None -> []
   
+let containsDefinition (s : string) = 
+  try
+    ignore (Str.search_forward (Str.regexp_string "definition") s 0);
+    true
+  with Not_found -> false;;
+
 let rec printSteps (steps : (string * Ast.expr) list) : string list =
   match steps with
-  | (name, expr) :: t -> ("= { " ^ name ^ " }\n" ^ Print.string_of_expr expr ^ "\n") :: printSteps t
+  | (name, expr) :: t -> if containsDefinition name then 
+    ("= { " ^ name ^ " }\n" 
+    ^ 
+    "= { matching } \n" 
+    ^
+    Print.string_of_expr expr ^ "\n") :: printSteps t
+  else
+    ("= { " ^ name ^ " }\n" ^ Print.string_of_expr expr ^ "\n") :: printSteps t
   | [] -> []
 
 let rec printRightSteps (steps : (string * Ast.expr) list) : string list =
@@ -174,8 +187,10 @@ let produceProof (equality : Ast.expr) (equalities : (string * Ast.expr list opt
   | Equal (left, right) -> 
     (let left_steps =  performSteps left equalities in
     let right_steps = performSteps right equalities in
-      if List.length left_steps > 0  then
-        (printSteps left_steps) @ (printSteps right_steps)
+      if List.length left_steps > 0  && List.length right_steps <> 0 then
+        (printSteps left_steps) @ (printRightSteps right_steps) @ [Print.string_of_expr right ^ "\n"]
+      else if List.length left_steps > 0 && List.length right_steps = 0 then
+        printSteps left_steps
       else
         ["= { ??? }\n" ^ Print.string_of_expr right ^ "\n"]
     )
@@ -213,11 +228,6 @@ let rec print_lemma lemma_list =
   match lemma_list with
   | (name, _, def) :: t -> name ^ " : " ^ Print.string_of_expr def ^ "\n" ^ print_lemma t
   | [] -> ""
-
-(* let getFunctionSimple (function_header : Ast.function_header) (function_body : Ast.expr) : (string * Ast.expr list option * Ast.expr) list =
-  match function_header with
-  | Ast.FunctionSignature (name, _, variables) -> [(name, Some variables, function_body)]
-  | _ -> raise (SyntaxError "Expected a function signature") *)
   
 let rec tuple_to_string (t : Ast.expr list) : string =
   match t with
@@ -287,7 +297,7 @@ let produce_output_simple (decls : Ast.declaration list) : string =
         )
       )
     | [] -> ""
-              ^ print_lemma acc
+              (* ^ print_lemma acc *)
   in
   helper decls []
 
