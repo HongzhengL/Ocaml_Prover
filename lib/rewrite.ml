@@ -181,23 +181,17 @@ let produceProof (equality : Ast.expr) (equalities : (string * Ast.expr list opt
     | _ -> raise (SyntaxError "produceProof: Expected an equality")
 
 
-let rec list_to_string (l : string list) : string =
-    match l with
-    | [] -> ""
-    | h :: t -> h ^ list_to_string t
-
-
 let processLemma (name, (def : Ast.expr), (hint_opt : Ast.hint option)) (lemma_list : (string * Ast.expr list option * Ast.expr) list) =
     let processEquality e1 e2 hintDescription = 
-        name ^ hintDescription ^ Print.string_of_expr e1 
-        ^ "\n= {" ^ hintDescription ^ "}\n" ^ Print.string_of_expr e2 ^ "\n"
+        name ^ " is assumed as an axiom:\n" ^ Print.string_of_expr e1 
+        ^ "\n= { " ^ hintDescription ^ " }\n" ^ Print.string_of_expr e2 ^ "\n"
     in
     match def with
     | Ast.Equal (e1, e2) -> (
         match hint_opt with
-        | Some Axiom -> processEquality e1 e2 " is assumed as an axiom:\n"
+        | Some Axiom -> processEquality e1 e2 "axiom"
         | Some (Induction x) -> processEquality e1 e2 (" is proved by induction on " ^ x ^ ":\n")
-        | None -> "Proof of " ^ name ^ ":\n" ^ Print.string_of_expr e1 ^ "\n" ^ list_to_string (produceProof def lemma_list)
+        | None -> "Proof of " ^ name ^ ":\n" ^ Print.string_of_expr e1 ^ "\n" ^ String.concat "" (produceProof def lemma_list)
     )
     | _ -> raise (SyntaxError "processLemma: Expected an equality")
 
@@ -237,7 +231,7 @@ let rec getParams (params : Ast.expr) : string =
         end
     | _ -> raise (SyntaxError "getParams: Expected a function signature")
     
-    
+
 let rec getFunctionRec (name : string) (function_header : Ast.expr) (function_body : Ast.expr) : Ast.expr list =
     let processPattern (pat, e) expr =
         let substituted = Substitution.apply (Substitution.singleton (Print.string_of_expr expr) (parse (getCons pat))) (parse (name ^ " " ^ getParams function_header)) in
@@ -299,6 +293,8 @@ let produce_output_simple (decls : Ast.declaration list) : string =
         | Ast.FunctionSignature (name, _, variables) ->
             let function_records = getFunctionRec name function_header function_body in
             let new_acc_entries = List.map (fun record -> ("definition of " ^ name, Some variables, record)) function_records in
+            (* let function_records = getFunction name function_header function_body in *)
+            (* let new_acc_entries = [("definition of " ^ name, Some variables, function_records)] in *)
             processDecls t (acc @ new_acc_entries)
 
         | _ -> raise (SyntaxError "produce_output_simple: Expected a function signature")
